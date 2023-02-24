@@ -1,0 +1,53 @@
+nie tego się spodziewałem kończąc studia w 2150 roku, ale:
+1. bycie jedynym menedżerem w korpo ekscentrycznego miliardera wcale nie jest takie stresujące
+2. 4 wojna korporacyjna potrafi być jednak zabawna
+3. wypożyczalnia najbystrzejszych umysłów nie jest tak pomocna jak mówili profesorowie
+
+1 w korporacji cos sie wydarzyło i całe biuro jest pelne potworow i każde pomieszczenie jest oblegane i trzeba oczyscic wszystkie pomieszczenia po kolei żeby skonczyc gre
+
+na początku jest pani Jola z dziekanatu, któRa ci mowi co amsz robic a na koniec okazuje sie bossem, ilosc maili od studentow ja przerosla i postanowila stac sie evil, ekscentryczny milioner to tak naprawdę pani Jola, w postaci hologramu milionera, nigdy nie mogą pokazac sie w tym samym pomieszczeniu razem
+
+postac to student nowy manager
+
+korpo zajmujące się bioinżynierią i wyprodukowała coś co je zabiło
+
+bron: pierwsza bron to ołówek, stól do robienia broni, ukladasz klocki jak chcesz i dajesz perka czy wybucha itd, całkowity custom broni, jak chcesz 4 lufy musisz więcej dolozyc, wiec jest ciezsze i wolniej chodzisz
+
+lvl przechodzenie: drabinka do góry na nastepny poziom, jak zle skoczysz to musisz wracac na początek
+widok 2d izometria helltaker, widok jak zelda lub jak celeste tylko z boku - widok jak celeste, działanie grawitacji
+
+pozniejsze upgrady postaci: podwojny skok, widzenie przez sciany, zabic na strzala, przegadac potwora, gadanie z kosmitami, 
+
+walczymy z mutantami, pierwszy lvl to normalna praca w korpo, pozniej sie dzieja rzeczy, wprowadzanie notatek dzieki ktorym odkrywa sie historie tego korpo, 
+
+mechanika: poruszanie sie zalezne od broni, im dalej w poziom postaci (stopień) tym gorsze poziomy, zbieranie przedmiotów do robienia z nich broni, wszystkie rzeczy mają przyszłościowe nazwy: turbokserokopiarka, cyberspinacz, ultraekspres do kawy, na każdym lvlu boss dzwoni, odbierasz i daje ci questy, tak naprawde sa to rzeczy neizwiazane z twoja praca, ktorych sens dowiemy sie na sam koniec , cos na czas itd, cały czas podkreslanei ze to bardzo ważne i ma to zrobic szybko
+
+potrzeba:
+- konstrukcja poziomu: na siatce wszystko, grid może być mały, platformy z kilku bloczków, część rzeczy jest kolizyjna, część nie
+- tło budynku powtarzalne, okna puste w png
+- lvl nie muszą mieć ustalonego wymiaru, mogą być dłuższe
+- (paralaksa)
+- postać ma ustaloną wysokość
+- grawitacja
+- hp (poziomy trudnosci na początku to ustawiają: łatwy 10, normal 5, hard 3 serduszka)
+- mapa
+- dodatkowe rzeczy później dodane do map, w layerach bez kolizji
+- przedmioty to tile
+- broń jako element tilesetu, wrogowie też
+- ai do wrogów
+- wrogowie to mutacje roślin
+- korporacje sie nie zmieniły przez 100 lat xD <- ważne do osoby prezentującej że żart polega na tym i jedyne co sie zmienilo to nazwy przedmiotow
+- rodzaje wrogów
+- system zbierania przedmiotow: jak widzisz przedmiot to go dodajesz do ekwipunku, po kliknieciu pokazanie ekwipunku, overload ekwipunku
+- bron możesz modyfikowac tylko w warsztacie, na grid, defaultowa broń to pięść, każda rzecz musi zostać przypisana do funkcji typu amunicja itd, kategorie
+- system dialogów: podchodzisz do hologramu obróconego w strone graczai wyświetla się tekst
+- pani Jola i hologram do tilesetu
+- npc jako wrogowie niebijący
+- wszystko ma własną grawitację
+
+1 system leveli - Rafał
+2 gracz - Mila
+3 wrogowie - Hiro
+4 broń, tworzenie w workshopie - Igor
+
+WIDTH, HEIGHT = 640, 360
