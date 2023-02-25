@@ -22,8 +22,8 @@ class Viewport:
         scaled_surface = pygame.transform.scale(
             surface,
             (
-                surface.get_width() * window_scale,
-                surface.get_height() * window_scale,
+                int(surface.get_width() * window_scale),
+                int(surface.get_height() * window_scale),
             ),
         )
 

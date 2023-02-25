@@ -6,6 +6,9 @@ from pygame.math import Vector2 as Vec2
 
 # from core.camera import Camera
 from components.text_box import TextBox
+from core.camera import Camera
+from core.window import Window
+
 
 class Weapon:
     GRID_WIDTH = 16
@@ -16,30 +19,30 @@ class Weapon:
         self.items: List[Tuple[Item, Vec2]] = []
         self.inventory = Inventory()
         self.selected_item: Optional[Item] = None
-        self.process((0, 0))
+        self.visible = False
+        self.surface = None
 
     def is_valid(self, spot, item):
         rect = pygame.Rect(spot, item.shape)
 
-        if (spot[0] + item.shape[0] > self.GRID_WIDTH) or \
-            (spot[1] + item.shape[1] > self.GRID_HEIGHT):
-            return False 
+        if (spot[0] + item.shape[0] > self.GRID_WIDTH) or (
+            spot[1] + item.shape[1] > self.GRID_HEIGHT
+        ):
+            return False
 
         for item, spot in self.items:
             rect2 = pygame.Rect(spot, item.shape)
             if rect.colliderect(rect2):
                 return False
         return True
-    
+
     def get_item_index_at_spot(self, spot) -> Optional[int]:
         spot = Vec2(spot)
         for i, (item, pos) in enumerate(self.items):
             tl = Vec2(pos)
             br = tl + Vec2(item.shape)
 
-
-            if (tl.x <= spot.x < br.x) and \
-                (tl.y <= spot.y < br.y):
+            if (tl.x <= spot.x < br.x) and (tl.y <= spot.y < br.y):
                 return i
         return None
 
@@ -55,7 +58,9 @@ class Weapon:
             self.inventory.remove_item(item)
 
     def load_grid(self):
-        self.GRID = [[None for _ in range(self.GRID_HEIGHT)] for _ in range(self.GRID_WIDTH)]
+        self.GRID = [
+            [None for _ in range(self.GRID_HEIGHT)] for _ in range(self.GRID_WIDTH)
+        ]
 
         for item, spot in self.items:
             start = Vec2(spot)
@@ -70,7 +75,9 @@ class Weapon:
         if len(self.items) < 1:
             return True
 
-        tile_count = sum(sum(1 if x is not None else 0 for x in row) for row in self.GRID)
+        tile_count = sum(
+            sum(1 if x is not None else 0 for x in row) for row in self.GRID
+        )
         vis = [[False for _ in range(len(row))] for row in self.GRID]
 
         i, j = map(int, self.items[0][1])
@@ -91,10 +98,10 @@ class Weapon:
             vis[i][j] = True
             count += 1
 
-            stack.append((i+1, j))
-            stack.append((i-1, j))
-            stack.append((i, j+1))
-            stack.append((i, j-1))
+            stack.append((i + 1, j))
+            stack.append((i - 1, j))
+            stack.append((i, j + 1))
+            stack.append((i, j - 1))
 
         return count == tile_count
 
@@ -114,7 +121,9 @@ class Weapon:
         return False or not self.is_connected()
 
     def get_weapon_as_surface(self):
-        weapon_surface = pygame.Surface((self.GRID_WIDTH, self.GRID_HEIGHT), pygame.SRCALPHA, 32)
+        weapon_surface = pygame.Surface(
+            (self.GRID_WIDTH, self.GRID_HEIGHT), pygame.SRCALPHA, 32
+        )
         weapon_surface = weapon_surface.convert_alpha()
         self.load_grid()
 
@@ -125,7 +134,17 @@ class Weapon:
 
         return weapon_surface
 
-    def process(self, mouse_position):
+    def update(self, window: Window):
+        if window.get_input().is_action_just_pressed(action="inventory"):
+            self.visible = not self.visible
+            if self.visible:
+                window.time_scale = 0
+            else:
+                window.time_scale = 1
+
+        if not self.visible:
+            return
+
         BORDER_COLOR = (0, 0, 0)
         GRID_COLOR = (200, 200, 230)
         SELECTED_GRID_COLOR = (180, 180, 210)
@@ -133,18 +152,22 @@ class Weapon:
         SELECTED_INVENTORY_COLOR = (120, 120, 150)
         BACKGROUND_COLOR = (100, 100, 130)
 
-        width, height = 1280, 720
+        width = window.get_ratio() * 720
+        height = 720
         grid_width, grid_height = 960, 480
         offset = Vec2((width - grid_width) // 2, (height - grid_height) // 2)
         step = grid_height // self.GRID_HEIGHT
         offset += Vec2(0, -step * 1.25)
 
-        surface = pygame.Surface((width, height))
-        surface.fill(BACKGROUND_COLOR)
+        surface = pygame.Surface((width, height), pygame.SRCALPHA, 32)
+        surface.fill((0, 0, 0, 150))  # translucent black
 
         grid_surface = pygame.Surface((grid_width, grid_height))
         grid_surface.fill((0, 255, 0))
 
+        mouse_position = Vec2(window.get_input().get_mouse_pos()) * (
+            height / window.get_size()[1]
+        )
         grid_relative_mouse_position = mouse_position - offset
         for i in range(len(self.GRID)):
             for j in range(len(self.GRID[i])):
@@ -169,7 +192,6 @@ class Weapon:
 
                 pygame.draw.rect(grid_surface, color, rect)
 
-
         for x in range(step, grid_width, step):
             for y in range(step, grid_height, step):
                 pygame.draw.line(
@@ -179,8 +201,7 @@ class Weapon:
                     grid_surface, BORDER_COLOR, (0, y), (grid_width, y), width=1
                 )
 
-        item_surface = pygame.Surface((grid_width, 2 * step))
-        item_surface.fill((0, 0, 0))
+        item_surface = pygame.Surface((grid_width, 2 * step), pygame.SRCALPHA, 32)
 
         item_offset = Vec2(0, grid_height) + offset + Vec2(0, step / 2)
 
@@ -205,29 +226,30 @@ class Weapon:
             pygame.draw.rect(item_surface, color, rect)
 
             if self.inventory[i] is not None:
-                
                 img = pygame.transform.scale(self.inventory[i].img, (step, step))
                 item_surface.blit(img, (start_x, start_y))
 
             start_y = step
 
             if self.inventory[i] is not None:
-                text_box = TextBox("res/uwu-font.ttf", font_size=step-4, font_color=INVENTORY_COLOR)
+                text_box = TextBox(
+                    "res/uwu-font.ttf", font_size=step - 4, font_color=INVENTORY_COLOR
+                )
                 text_box.set_text(str(self.inventory.get_count(self.inventory[i])))
                 # img = pygame.transform.scale(self.inventory[i].img, (step, step))
-                item_surface.blit(text_box._rendered_text, (start_x+2, start_y+2))
+                item_surface.blit(text_box._rendered_text, (start_x + 2, start_y + 2))
 
         for x in range(step, grid_width, step):
             for y in range(step, 2 * step, step):
-                pygame.draw.line(
-                    item_surface, BORDER_COLOR, (x, 0), (x, 2 * step), width=1
-                )
+                pygame.draw.line(item_surface, BORDER_COLOR, (x, 0), (x, step), width=1)
                 pygame.draw.line(
                     item_surface, BORDER_COLOR, (0, y), (grid_width, y), width=1
                 )
 
         weapon_surface = self.get_weapon_as_surface()
-        weapon_surface = pygame.transform.scale(weapon_surface, (grid_surface.get_width(), grid_surface.get_height()))
+        weapon_surface = pygame.transform.scale(
+            weapon_surface, (grid_surface.get_width(), grid_surface.get_height())
+        )
         weapon_surface.set_alpha(64)
         grid_surface.blit(weapon_surface, (0, 0))
 
@@ -248,5 +270,15 @@ class Weapon:
 
         # surface.blit(pygame.transform.scale_by(self.get_weapon_as_surface(), 10), (0, 0))
         self.surface = surface
-        return surface
-    
+
+    def draw(self, camera: Camera) -> None:
+        if not self.visible:
+            return
+
+        if self.surface is None:
+            return
+
+        camera.blit(
+            surface=self.surface,
+            offset=(-camera.viewport.get_width() / 2, -camera.viewport.height / 2),
+        )

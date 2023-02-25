@@ -1,5 +1,4 @@
 def lerp(a, b, t):
-    # return (t - 1) * a + (t) * b
     return a + t * (b - a)
 
 

@@ -1,10 +1,10 @@
 import pygame
 from pygame.math import Vector2 as Vec2
 from color import Color
-from src.components.map import BBox, MapEngine, Tile
-from src.components.player import Player
-from src.components.text_box import TextBox
-from weapon import Weapon
+from components.map import BBox, MapEngine, Tile
+from components.player import Player
+from components.text_box import TextBox
+from components.weapon import Weapon
 from item import Item, ItemType
 
 pygame.init()
