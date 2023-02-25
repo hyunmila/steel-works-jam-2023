@@ -9,6 +9,8 @@ from core.window import Window
 from core.camera import Camera
 from components.weapon import WeaponManager
 from math import atan2, pi
+from core.music import Sound
+from numpy import sign
 
 from components.map import Map
 from components.bullet import BulletManager
@@ -70,6 +72,9 @@ class Player:
         self.game_mode()
         self.hp = self.max_hp
         # self.acceleration = Vec2(0.0, -10.0)
+        # self.falling_sound = Sound("res/falling.mp3")
+        self.footsteps_sound = Sound("res/footsteps.mp3", loop=True)
+        self.pickup_sound = Sound("res/pickup.mp3")
 
         self.weapon_rotation = 0
         self.bullet_manager = bullet_manager
@@ -83,39 +88,46 @@ class Player:
 
     def update(self, window: Window):
         self.rotate_weapon(window)
+        # self.inertia = max(1.0, self.weapon.get_weight()
 
-        y_val = 200
-        x_val = 200
+        self.collided_y = False
+        x_val = 50
         dt = window.get_delta()
         # print(self.hp)
         self.ticks += dt
-        if self.ticks > 0.5:  # 1 tick na 16 ms
+        if self.ticks > 0.1:  # 1 tick na 16 ms
             self.animidx += 1
             # print(self.animidx)
             self.ticks = 0
-        # print(f"self.is_able_to_jump={self.is_able_to_jump}")
+        # # print(f"self.is_able_to_jump={self.is_able_to_jump}")
 
-        acceleration = Vec2(0.0, y_val)
+        acceleration = Vec2(0.0, 30)
 
         if not self.dialog_box.is_shown():
             if window.get_input().is_action_pressed("right"):
-                # if pressed_keys[pygame.K_d]:
                 acceleration.x += x_val
 
-            if window.get_input().is_action_pressed("jump"):
-                # if pressed_keys[pygame.K_w]:
-                if self.is_jumping == False and self.is_able_to_jump == True:
-                    self.t_start = perf_counter()
-                    self.is_jumping = True
+            if window.get_input().is_action_pressed("left"):
+                acceleration.x -= x_val
+
+        if window.get_input().is_action_pressed("jump"):
+            # if pressed_keys[pygame.K_w]:
+            if self.is_jumping == False and self.is_able_to_jump == True:
+                self.t_start = perf_counter()
+                self.is_jumping = True
+                self.is_able_to_jump = False
+            if self.is_jumping == True:
+                self.t_stop = perf_counter()
+                if (self.t_stop - self.t_start) <= 0.3:
+                    factor = (self.t_stop - self.t_start)*3
+                    self.velocity.y = -13
+                    #print(self.velocity)
+                    # acceleration.y = -30*(3.5-factor)
+                else:
+                    self.is_jumping = False
                     self.is_able_to_jump = False
-                if self.is_jumping == True:
-                    self.t_stop = perf_counter()
-                    if (self.t_stop - self.t_start) <= 0.65:
-                        acceleration.y = -y_val
-                    else:
-                        self.is_jumping = False
-            else:
-                self.is_jumping = False
+        else:
+            self.is_jumping = False
 
             if window.get_input().is_action_pressed("left"):
                 # if pressed_keys[pygame.K_a]:
@@ -128,12 +140,12 @@ class Player:
 
         # print(acceleration)
         if self.is_jumping == False and self.is_able_to_jump == False:
-            acceleration.y += 1.25 * y_val
+            acceleration.y *= 3
 
         # if pressed_keys[pygame.K_s]:
         #         acceleration.y += y_val
-        fx = 0.45  # 0<f<1
-        fy = 0.50  # 0<f<1
+        fx = 0.55  # 0<f<1
+        fy = 0.60  # 0<f<1
         if abs(acceleration.x) > 0:
             self.velocity.x = lerp(
                 self.velocity.x,
@@ -157,15 +169,18 @@ class Player:
         elif self.velocity.x < 0:
             self.facing = "left"
 
-        max_speed = 10
-        if self.velocity.length() > max_speed:
-            self.velocity = self.velocity.normalize() * max_speed
+        max_speed_x = 10
+        max_speed_y = 30
+        if abs(self.velocity.x) > max_speed_x:
+            self.velocity.x = abs(max_speed_x) * sign(self.velocity.x)
+        if abs(self.velocity.y) > max_speed_y:
+            self.velocity.y = abs(max_speed_y) * sign(self.velocity.y)
 
         old_position = self.position.copy()
         # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
         # print("PRE", self.velocity, self.position)
-
+            
         self.position.y = lerp(
             self.position.y, self.position.y + (self.velocity.y * dt), fy
         )
@@ -174,12 +189,18 @@ class Player:
             bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
         ):
             if old_position.y < self.position.y:
-                self.is_able_to_jump = True
+                if not self.is_able_to_jump:
+                    self.is_able_to_jump = True
+                    # self.falling_sound.play()
             else:
+                self.is_able_to_jump = False
                 self.is_jumping = False
 
             self.position.y = old_position.y
             self.velocity.y = 0
+
+        if old_position.y < self.position.y:
+            self.is_able_to_jump = False
 
         self.position.x = lerp(
             self.position.x, self.position.x + (self.velocity.x * dt), fx
@@ -195,10 +216,15 @@ class Player:
 
         # print("POST", self.velocity, self.position)
 
+        any_item = False
         while item := self.collision_map.take_usable_collision(
             bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
         ):
+            any_item = True
             self.weapon.add_item(item)
+
+        if any_item:
+            self.pickup_sound.play()
 
         self.follow_camera.position = (
             core.math.lerp(
@@ -255,10 +281,13 @@ class Player:
 
     def get_state(self):
         if self.is_able_to_jump == False:
+            self.footsteps_sound.stop()
             return "jumping"
         if abs(self.velocity.x) > 1e-6:
+            self.footsteps_sound.play()
             return "walking"
         else:
+            self.footsteps_sound.stop()
             return "standing"
 
     def game_mode(self):

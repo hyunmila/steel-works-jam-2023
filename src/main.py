@@ -1,4 +1,8 @@
 import pygame
+
+pygame.init()
+pygame.mixer.init()
+
 import os
 from pygame.math import Vector2 as Vec2
 from pygame import Vector2
@@ -6,6 +10,7 @@ from core.viewport import Viewport
 from core.window import Window
 from core.camera import Camera
 from core.color import Color
+from core.music import Sound
 from components.player import Player
 from components.text_box import TextBox
 from components.map import Map, Tile
@@ -34,6 +39,13 @@ input.add_action_key(action="fire", key=1)  # left mouse button
 
 viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
+
+main_song = Sound("res/main.wav", loop=True, volume=0.4)
+main_song.play()
+
+beam_sound = Sound("res/beam.mp3")
+duct_tape_sound = Sound("res/duct_tape.mp3", volume=0.5)
+
 ui_camera = Camera(viewport=viewport)
 
 turbokserokopiarka = Item(
@@ -101,7 +113,7 @@ text_box = TextBox(
     line_height_factor=1.5,
 )
 text_box.set_text(
-    "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
+    "Get out of here.\nQuickly"
 )
 # text_box.offset = (50,0)
 
@@ -158,8 +170,24 @@ spatial_text_box.offset = (100, 100)
 
 # ENEMY testing
 enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20, 20), collision_map=map
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
 )
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(10, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(11, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(12, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
+)
+
 enemy.add_enemy(
     "sorcerer",
     "res/wojownik-atakuje.png",
@@ -177,6 +205,11 @@ parallax = Parallax(
 # main game loop
 while window.is_open():
     window.process_events()
+
+    if input.is_action_just_pressed(action="debug-delta"):
+        print(f"delta = {window.get_delta()}")
+        player.weapon.visible = not player.weapon.visible
+        duct_tape_sound.play()
 
     weapon_manager.update(window=window)
     player.update(window=window)

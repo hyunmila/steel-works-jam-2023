@@ -1,5 +1,5 @@
 import math
-from typing import Callable
+from typing import Callable, List
 from pygame import Vector2
 import pygame
 from core.camera import Camera
@@ -60,7 +60,7 @@ class BulletManager:
         self._bullets = []
         self.collision_map = collision_map
 
-    def get_bullets(self) -> list[Bullet]:
+    def get_bullets(self) -> List[Bullet]:
         return self._bullets
 
     def add_bullet(self, position: Vector2, direction: Vector2) -> None:

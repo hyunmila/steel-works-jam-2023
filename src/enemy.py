@@ -7,13 +7,15 @@ import abc
 from core.camera import Camera
 from components.map import Map
 from core.math import BBox, lerp
+from typing import List
+from time import perf_counter
 
 
 class Box:
     def __init__(self, pos, size):
         self.pos = pos
         self.size = size
-        self.velocity = Vec2(0.0, 0.0)
+        self.vel = Vec2(0.0, 0.0)
 
     def get_points(self):
         l = Vec2(0, self.size.y / 2)
@@ -27,7 +29,7 @@ class Box:
         )
 
     # def move(self, dt):
-    #     self.pos += self.velocity * dt
+    #     self.pos += self.vel * dt
 
 
 PIXEL_SIZE = 64
@@ -39,16 +41,196 @@ class Enemy(metaclass=abc.ABCMeta):
         self.image = pygame.transform.scale(self.image, (PIXEL_SIZE, PIXEL_SIZE))
         # self.rect = self.image.get_rect(center=(pos[0] * PIXEL_SIZE, pos[1] * PIXEL_SIZE))
         self.rect = pos
-        self.gravity = 0
         self.vel = vel
         self.dist = dist
         self.collision_map = collision_map
         self.health = 3
         self.ticks = 0
+        self.is_jumping = False
+        self.is_able_to_jump = False
+        self.t_start = perf_counter()
+        self.t_stop = perf_counter()
+        self.inertia = 1
 
-    # when player is too close to enemy, then enemy is starting chaise him
+
     def activate(self, pos):
         return Vec2(pos.x - self.rect.x, pos.y - self.rect.y).length()
+
+    def air_check(self, pos, vec : Vec2): # true if there is no colision
+        return not self.collision_map.get_tile(int(pos.x + vec.x), int(pos.y + vec.y)).collision
+
+    def move(self, player_pos, dt):
+
+        old_position = self.rect.copy()
+        
+        x_val = 2000
+        y_val = 2000
+        fy = 0.7
+
+        acceleration = Vec2(0.0, y_val)
+        # ------------------------------------------------------------
+
+        if player_pos.x > self.rect.x: # warunek chodzenia w prawo
+            acceleration.x += x_val
+        if player_pos.x < self.rect.x: # warunek dla chodzenia w lewo
+            acceleration.x -= x_val
+            
+        if player_pos.y < self.rect.y: # warunek skoku
+            if self.is_jumping == False and self.is_able_to_jump == True:
+                self.t_start = perf_counter()
+                self.is_jumping = True
+                self.is_able_to_jump = False
+            if self.is_jumping == True:
+                self.t_stop = perf_counter()
+                if (self.t_stop - self.t_start) <= 0.65:
+                    acceleration.y = -y_val*2
+                else:
+                    self.is_jumping = False
+        else:
+            self.is_jumping = False
+
+        
+
+        # print(acceleration)
+        if self.is_jumping == False and self.is_able_to_jump == False:
+            acceleration.y += 1.50 * y_val
+
+        fx = 0.70  # 0<f<1
+        fy = 0.70  # 0<f<1
+        if abs(acceleration.x) > 0:
+            self.vel.x = lerp(
+                self.vel.x,
+                self.vel.x + (acceleration.x * self.inertia * dt),
+                fx,
+            )
+        else:
+            self.vel.x = lerp(self.vel.x, 0.0, fx)
+
+        if abs(acceleration.y) > 0:
+            self.vel.y = lerp(
+                self.vel.y,
+                self.vel.y + (acceleration.y * self.inertia * dt),
+                fy,
+            )
+        else:
+            self.vel.y = lerp(self.vel.y, 0.0, fy)
+
+        print(f'VELOCITY: {self.vel}')
+
+        if self.vel.x > 0:
+            self.facing = "right"
+        elif self.vel.x < 0:
+            self.facing = "left"
+
+        max_speed = random.randint(3,20)
+        if self.vel.length() > max_speed:
+            self.vel = self.vel.normalize() * max_speed
+
+        old_position = self.rect.copy()
+        # self.position = self.position.lerp(self.position + (self.vel * dt), f)
+
+        # print("PRE", self.vel, self.position)
+            
+        self.rect.y = lerp(
+            self.rect.y, self.rect.y + (self.vel.y * dt), fy
+        )
+
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
+        ):
+            if old_position.y < self.rect.y:
+                self.is_able_to_jump = True
+            else:
+                self.is_jumping = False
+
+            self.rect.y = old_position.y
+            self.vel.y = 0
+
+        self.rect.x = lerp(
+            self.rect.x, self.rect.x + (self.vel.x * dt), fx
+        )
+
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
+        ):
+            # print("x1", self.position.x)
+            self.rect.x = old_position.x
+            # print("x2", self.position.x)
+            self.vel.x = 0
+
+    def gravity(self, dt):
+        f = 0.2
+        old_position = self.rect.copy()
+        
+        y_val = 300
+        fy = 0.50
+
+        acceleration = Vec2(0.0, y_val)
+        
+        if self.is_jumping == False and self.is_able_to_jump == False:
+            acceleration.y += 1.50 * y_val
+
+        fx = 0.45  # 0<f<1
+        fy = 0.50  # 0<f<1
+        if abs(acceleration.x) > 0:
+            self.vel.x = lerp(
+                self.vel.x,
+                self.vel.x + (acceleration.x * self.inertia * dt),
+                fx,
+            )
+        else:
+            self.vel.x = lerp(self.vel.x, 0.0, fx)
+
+        if abs(acceleration.y) > 0:
+            self.vel.y = lerp(
+                self.vel.y,
+                self.vel.y + (acceleration.y * self.inertia * dt),
+                fy,
+            )
+        else:
+            self.vel.y = lerp(self.vel.y, 0.0, fy)
+
+        if self.vel.x > 0:
+            self.facing = "right"
+        elif self.vel.x < 0:
+            self.facing = "left"
+
+        max_speed = 5
+        if self.vel.length() > max_speed:
+            self.vel = self.vel.normalize() * max_speed
+
+        old_position = self.rect.copy()
+        # self.position = self.position.lerp(self.position + (self.vel * dt), f)
+
+        # print("PRE", self.vel, self.position)
+            
+        self.rect.y = lerp(
+            self.rect.y, self.rect.y + (self.vel.y * dt), fy
+        )
+
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
+        ):
+            if old_position.y < self.rect.y:
+                self.is_able_to_jump = True
+            else:
+                self.is_jumping = False
+
+            self.rect.y = old_position.y
+            self.vel.y = 0
+
+        self.rect.x = lerp(
+            self.rect.x, self.rect.x + (self.vel.x * dt), fx
+        )
+
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
+        ):
+            # print("x1", self.position.x)
+            self.rect.x = old_position.x
+            # print("x2", self.position.x)
+            self.vel.x = 0
+
 
     # to update all status about enemy
     def update(self, player_pos, camera: Camera, dt):
@@ -56,14 +238,6 @@ class Enemy(metaclass=abc.ABCMeta):
 
     def range_attack(self):
         pass
-
-    # @abc.abstractmethod
-    # def chase(self, pos):
-    #     pass
-
-    # @abc.abstractmethod
-    # def ability(self, cooldown):
-    #     pass
 
     def draw(self, camera: Camera, surface, pos):
         camera.blit(surface, pos)
@@ -87,37 +261,11 @@ class Warrior(Enemy):
     def update(self, player_pos, camera: Camera, dt):
         f = 0.2
         old_vel = self.vel
-        old_position = self.rect.copy()
-        # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
-
-        # print("PRE", self.velocity, self.position)
-        # print("PRE", self.position)
 
         if 0.7 < self.activate(player_pos) < self.dist:
-            if self.rect.y < player_pos.y:
-                self.rect.y = lerp(self.rect.y, self.rect.y + (self.vel.y * dt), f)
-            else:
-                self.rect.y = lerp(self.rect.y, self.rect.y + (-self.vel.y * dt), f)
-
-            if self.collision_map.rect_collision(
-                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
-            ):
-                if old_position.y < self.rect.y:
-                    self.is_able_to_jump = True
-                else:
-                    self.is_jumping = False
-
-                self.rect.y = old_position.y
-
-            if self.rect.x < player_pos.x:
-                self.rect.x = lerp(self.rect.x, self.rect.x + (self.vel.x * dt), f)
-            else:
-                self.rect.x = lerp(self.rect.x, self.rect.x + (-self.vel.x * dt), f)
-
-            if self.collision_map.rect_collision(
-                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
-            ):
-                self.rect.x = old_position.x
+            self.move(player_pos, dt)
+        else:
+            self.gravity(dt)
 
         # self.ability(5)
         self.draw(
@@ -125,39 +273,38 @@ class Warrior(Enemy):
         )
         self.vel = old_vel
 
-    # def ability(self, cooldown):  # super attack
-    #     return cooldown - time.time()
-
-
 class Bullet:
-    def __init__(self, position: Vec2, vel: Vec2, direction: Vec2, collision_map: Map):
+    def __init__(self, path, position : Vec2, vel : Vec2, direction : Vec2, collision_map : Map):
         self.vel = vel
+        self.image = pygame.image.load(path).convert_alpha()
         self.position = position
         self.direction = direction  # Vector2 like [0,-1] - normalized
         self.collision_map = collision_map
-        self.rect = pygame.Rect(position.x * PIXEL_SIZE, position.y * PIXEL_SIZE, 3, 7)
+        
 
-    def draw(self):
-        pass
-
-    # def update(self, camera):
-    #     if not self.collision_map.rect_collision(
-    #         bbox=BBox(self.rect.x / PIXEL_SIZE, self.rect.y / PIXEL_SIZE, 3 / PIXEL_SIZE, 7 / PIXEL_SIZE)
-    #         ):
-    #         if bullet.x < 0:
-    #             bullet.x = lerp(bullet.x, bullet.x + (-self.bullet_vel.x * dt), f)
-    #         else:
-    #             bullet.x = lerp(bullet.x, bullet.x + (self.bullet_vel.x * dt), f)
-
-    #         if bullet.y < 0:
-    #             bullet.y = lerp(bullet.y, bullet.y + (-self.bullet_vel.y * dt), f)
-    #         else:
-    #             bullet.y = lerp(bullet.y, bullet.y + (self.bullet_vel.y * dt), f)
-    #         self.draw(camera ,self.image, bullet[1])
-    #         new_bullets.append(bullet)
-
-    #     self.bullets = new_bullets
-    #     self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
+    def draw(self, camera, surf, pos):
+        camera.blit(surf, pos)
+    
+    def update(self, camera, dt):
+        f = 0.2
+        if not self.collision_map.rect_collision(
+            bbox=BBox(self.position.x, self.position.y, 1, 1)
+            ):
+            print (self.position)
+            if self.direction.x < 0:
+                self.position.x = lerp(self.position.x, self.position.x + (self.vel.x * self.direction.x *  dt), f)
+            else:
+                self.position.x = lerp(self.position.x, self.position.x + (self.vel.x * self.direction.x *  dt), f)
+            
+            if self.direction.y < 0:
+                self.position.y = lerp(self.position.y, self.position.y + (self.vel.y * self.direction.y *  dt), f)
+            else:
+                self.position.y = lerp(self.position.y, self.position.y + (self.vel.y * self.direction.y *  dt), f)
+            
+            self.draw(camera, self.image, self.position)
+            return True
+        else:
+            return False
 
 
 class Sorcerer(Enemy):
@@ -168,15 +315,24 @@ class Sorcerer(Enemy):
 
     def shoot(self, player_pos):
         if self.shoots(player_pos):
-            bullet = pygame.Rect(
-                self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE, 10, 5
-            )
-            # self.bullets.append((bullet, Vec2(player_pos.x - self.rect.x, player_pos.y - self.rect.y))) # (bullet, direction_of_bullet - Vec2 normalized)
-            self.bullets.append(
-                bullet
-            )  # (bullet, direction_of_bullet - Vec2 normalized)
+            print("OK")
+            
+    def update(self, player_pos, camera : Camera, dt):
+        flag = False
+        pressed_keys = pygame.key.get_pressed()
 
-    def update(self, player_pos, camera: Camera, dt):
+        if pressed_keys[pygame.K_k]:
+            flag = True
+        if flag:
+            self.bullets.append(Bullet('res/plant.png', self.rect, Vec2(2, 2), Vec2(0,1), self.collision_map))
+        new_bullets = []
+        
+        for bullet in self.bullets:
+            print(f'Bullet posisiton: {bullet.position}')
+            if bullet.update(camera, dt):
+                new_bullets.append(bullet)
+        self.bullets = new_bullets
+
         self.ticks += dt
         if self.ticks > 2:
             self.shoot(player_pos)
@@ -184,65 +340,13 @@ class Sorcerer(Enemy):
         f = 0.2
 
         old_vel = self.vel
-        old_position = self.rect.copy()
-        # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
-
-        # print("PRE", self.velocity, self.position)
-        # print("PRE", self.position)
 
         if 3 < self.activate(player_pos) < self.dist:
-            if self.rect.y < player_pos.y:
-                self.rect.y = lerp(self.rect.y, self.rect.y + (self.vel.y * dt), f)
-            else:
-                self.rect.y = lerp(self.rect.y, self.rect.y + (-self.vel.y * dt), f)
-
-            if self.collision_map.rect_collision(
-                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
-            ):
-                if old_position.y < self.rect.y:
-                    self.is_able_to_jump = True
-                else:
-                    self.is_jumping = False
-
-                self.rect.y = old_position.y
-
-            if self.rect.x < player_pos.x:
-                self.rect.x = lerp(self.rect.x, self.rect.x + (self.vel.x * dt), f)
-            else:
-                self.rect.x = lerp(self.rect.x, self.rect.x + (-self.vel.x * dt), f)
-
-            if self.collision_map.rect_collision(
-                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
-            ):
-                self.rect.x = old_position.x
+            self.move(player_pos, dt)
 
         new_bullets = []
 
-        # update all bullets
-        # for bullet in self.bullets:
-        #     if not self.collision_map.rect_collision(
-        #         bbox=BBox(bullet.x / PIXEL_SIZE, bullet.y / PIXEL_SIZE, 10 / PIXEL_SIZE, 5 / PIXEL_SIZE)
-        #         ):
-        #         if bullet.x < 0:
-        #             bullet.x = lerp(bullet.x, bullet.x + (-self.bullet_vel.x * dt), f)
-        #         else:
-        #             bullet.x = lerp(bullet.x, bullet.x + (self.bullet_vel.x * dt), f)
-
-        #         if bullet.y < 0:
-        #             bullet.y = lerp(bullet.y, bullet.y + (-self.bullet_vel.y * dt), f)
-        #         else:
-        #             bullet.y = lerp(bullet.y, bullet.y + (self.bullet_vel.y * dt), f)
-        #         self.draw(camera ,self.image, bullet[1])
-        #         new_bullets.append(bullet)
-
-        # self.bullets = new_bullets
-
-        # ______________________________________________________
-
-        # self.ability(5)
-        self.draw(
-            camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE)
-        )
+        self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
         self.vel = old_vel
 
     def shoots(self, player_pos):
@@ -252,13 +356,10 @@ class Sorcerer(Enemy):
 
 
 enemies = []
-bullets = []
-dt = 0
-enum = {"warrior": Warrior, "sorcerer": Sorcerer}
-VEL = 5  # global velocity
+enum = {'warrior' : Warrior, 'sorcerer': Sorcerer}
 
 
-def enemy_collision(enemies: list[Enemy]):
+def enemy_collision(enemies: List[Enemy]):
     n = len(enemies)
     dt = 10
     for _ in range(3):
@@ -290,19 +391,6 @@ def enemy_collision(enemies: list[Enemy]):
 
                 if x <= 0 or y <= 0:
                     continue
-
-                # vec1 = Vec2(
-                #     (rect1.topleft[0] - rect1.center[0]) * 2,
-                #     (rect1.topleft[1] - rect1.center[1]) * 2,
-                # ).length()  # ????
-
-                # vec = Vec2(
-                #     rect1.center[0] - rect2.center[0], rect1.center[1] - rect2.center[1]
-                # )
-                # vec_len = vec.length()
-
-                # if vec_len > 100:
-                #     continue
 
                 if x < y:
                     if box1.pos.x > box2.pos.x:
@@ -337,25 +425,21 @@ def enemy_collision(enemies: list[Enemy]):
 
 
 def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
-    if type_of_enemy is "warrior":
+    if type_of_enemy == "warrior":
         enemies.append(
             enum["warrior"](path, position, distance, vel_of_chase, collision_map)
         )
 
-    if type_of_enemy is "sorcerer":
+    if type_of_enemy == "sorcerer":
         enemies.append(
             enum["sorcerer"](path, position, distance, vel_of_chase, collision_map)
         )
 
 
 def update_all(player_pos, camera, timer):
-    # handle collisions of bullets
 
     for enemy in enemies:
         enemy.update(player_pos, camera, timer)
-
-    # enemy_collision(enemies)
-
-
-if __name__ == "__main__":
+    
+if __name__ == '__main__':
     pass

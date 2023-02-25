@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List
 import pygame
 from core.camera import Camera
 from core.window import Window
@@ -24,7 +24,7 @@ class DialogBox:
         self._empty = True
         self._dialog_queue = []
 
-    def show(self, messages: list[str]) -> None:
+    def show(self, messages: List[str]) -> None:
         self._dialog_queue = messages
 
     def is_shown(self) -> bool:
