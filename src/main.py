@@ -67,8 +67,11 @@ spatial_text_box = TextBox(
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
-spatial_text_box.set_text("tekst w przestrzeni")
+spatial_text_box.set_text("NAP Game- Not A Platformer Game")
 spatial_text_box.offset = (100, 100)
+
+# UI hp 
+
 
 # # TESTING: igor's item system
 # weapon = Weapon()
