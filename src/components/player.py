@@ -11,6 +11,7 @@ from components.weapon import Weapon
 from math import atan2, pi
 
 from components.map import Map
+from components.bullet import BulletManager
 
 PIXEL_SIZE = 64
 
@@ -21,7 +22,9 @@ no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
 
 
 class Player:
-    def __init__(self, follow_camera: Camera, collision_map: Map) -> None:
+    def __init__(
+        self, follow_camera: Camera, collision_map: Map, bullet_manager: BulletManager
+    ) -> None:
         self.inertia = 1.0
         self.position = Vec2(0.0, 0.0)
         self.velocity = Vec2(0.0, 0.0)
@@ -63,6 +66,7 @@ class Player:
         # self.acceleration = Vec2(0.0, -10.0)
 
         self.weapon_rotation = 0
+        self.bullet_manager = bullet_manager
 
     def rotate_weapon(self, window: Window):
         mouse_pos = Vec2(window.get_input().get_mouse_pos())
@@ -197,6 +201,10 @@ class Player:
         )
 
         self.weapon.update(window=window)
+
+        if window.get_input().is_action_just_pressed("fire"):
+            dir = Vec2(1, 0).rotate(self.weapon_rotation)
+            self.bullet_manager.add_bullet(position=self.position, direction=dir)
 
     def draw(self, camera: Camera, ui_camera: Camera) -> None:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)

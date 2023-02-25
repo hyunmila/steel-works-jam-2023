@@ -50,6 +50,10 @@ class Window:
                 self._input._update_key_state(event.key, True)
             elif event.type == pygame.KEYUP:
                 self._input._update_key_state(event.key, False)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self._input._update_key_state(event.button, True)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self._input._update_key_state(event.button, False)
 
         self._input._integrate_updates()
 

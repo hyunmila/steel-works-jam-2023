@@ -14,6 +14,8 @@ from item import Item, ItemType
 from components.weapon import Weapon
 import enemy, time
 
+from components.bullet import BulletManager
+
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
 # input mappings for easier scripting
@@ -27,6 +29,7 @@ input.add_action_key(action="jump", key=pygame.K_SPACE)
 input.add_action_key(action="jump", key=pygame.K_w)
 input.add_action_key(action="jump", key=pygame.K_UP)
 input.add_action_key(action="inventory", key=pygame.K_i)
+input.add_action_key(action="fire", key=1)  # left mouse button
 
 viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
@@ -66,8 +69,10 @@ map = Map(
 )
 map.load_from_file("res/test-map.png")
 
+bullet_manager = BulletManager(collision_map=map)
+
 # player controller with camera following
-player = Player(follow_camera=camera, collision_map=map)
+player = Player(follow_camera=camera, collision_map=map, bullet_manager=bullet_manager)
 player.position = Vector2(5, 5)
 
 # UI text
@@ -133,7 +138,6 @@ spatial_text_box.offset = (100, 100)
 # for _ in range(4):
 #     weapon.add_item(item3)
 
-flag = False
 # ENEMY testing
 enemy.add_enemy(
     "warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20, 20), collision_map=map
@@ -158,11 +162,13 @@ while window.is_open():
 
     player.update(window=window)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
+    bullet_manager.update(window=window)
 
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
     enemy.update_all(player.position, camera, window.get_delta())
     player.draw(camera=camera, ui_camera=ui_camera)
+    bullet_manager.draw(camera=camera)
     text_box.draw(camera=ui_camera)
 
     window.swap_buffers()

@@ -83,6 +83,8 @@ class Input:
         else:
             self._pressed_keys.remove(key)
 
+        print(f"Pressed keys: {self._pressed_keys}")
+
     def _integrate_updates(self) -> None:
         # Find keys that were just pressed or released
         self._just_pressed_keys = self._pressed_keys - self._prev_pressed_keys
