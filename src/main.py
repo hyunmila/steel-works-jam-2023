@@ -1,5 +1,6 @@
 import pygame
 from pygame.math import Vector2 as Vec2
+import os
 from pygame import Vector2
 from core.viewport import Viewport
 from core.window import Window
@@ -37,11 +38,38 @@ camera = Camera(viewport=viewport)
 ui_viewport = Viewport(window=window, height=360)
 ui_camera = Camera(viewport=ui_viewport)
 
+# Weapon menu viewport
+weapon_viewport = Viewport(window=window, height=720)
+weapon_camera = Camera(viewport=weapon_viewport)
+
+
+turbokserokopiarka = Item(
+    name="turbokserokopiarka",
+    img = pygame.image.load("res/turbokserokopiarka.png"),
+    item_type = ItemType.GUN,
+    ammo_type="dupa2",
+    weight=10.0,
+    shape=(3, 3),
+    color=(255, 255, 255)
+)
+
+ultraekspres = Item(
+    name="ultraekspres",
+    img = pygame.image.load("res/ultraekspres.png"),
+    item_type = ItemType.GUN,
+    ammo_type="dupa2",
+    weight=2.0,
+    shape=(2, 2),
+    color=(255, 0, 255)
+)
+
 # game map
 map = Map(
     tiles={
         Color.WHITE: Tile("", False),
         Color.BLACK: Tile("res/metalowa-podłoga-2.png", True),
+        Color.RED: Tile("res/turbokserokopiarka.png", collision=False, item=turbokserokopiarka),
+        Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres), 
     },
     tile_size=16,
 )
@@ -61,6 +89,7 @@ text_box = TextBox(
 text_box.set_text(
     "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
 )
+# text_box.offset = (50,0)
 
 # text in 3D space
 spatial_text_box = TextBox(
@@ -69,8 +98,10 @@ spatial_text_box = TextBox(
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
-spatial_text_box.set_text("tekst w przestrzeni")
+spatial_text_box.set_text("NAP Game - Not A Platformer Game")
 spatial_text_box.offset = (100, 100)
+
+
 
 # # TESTING: igor's item system
 # weapon = Weapon()
@@ -82,38 +113,60 @@ spatial_text_box.offset = (100, 100)
 #     shape=(2, 3),
 #     ammo_type="dupa2",
 #     img=pygame.image.load("res/test.png"),
+#     color=Color.RED
+# )
+
+# item2 = Item(
+#     name='dupa2',
+#     item_type=ItemType.AMMO,
+#     weight=42.0,
+#     shape=(4,1),
+#     ammo_type="",
+#     img=pygame.image.load("res/jola.png"),
+#     color=Color.GREEN
+# )
+
+# item3 = Item(
+#     name='dupa3',
+#     item_type=ItemType.CONNECT,
+#     weight=45.0,
+#     shape=(2,1),
+#     ammo_type="",
+#     img=pygame.image.load("res/wojownik-atakuje.png"),
+#     color=Color.BLUE
 # )
 
 # weapon.add_item(item)
 
-# ENEMY testing
-enemy.add_enemy("warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20,20), collision_map = map)
-enemy.add_enemy("sorcerer", "res/wojownik-atakuje.png", Vec2(1, 1), 5, Vec2(20,20), collision_map = map)
-# enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
+# for _ in range(2):
+#     weapon.add_item(item2)
+# for _ in range(4):
+#     weapon.add_item(item3)
 
+flag = False
 
 # main game loop
 while window.is_open():
     window.process_events()
-
+    # print(os.environ.get('NAP_GAME_MODE_SELECT_69'))
     if input.is_action_just_pressed(action="debug-delta"):
         print(f"delta = {window.get_delta()}")
 
     player.update(window=window)
-
-    # enemy updating
-    enemy.update_all(player.position, camera, window.get_delta())
-
-    text_box.offset = (-ui_viewport.get_width() / 2, -ui_viewport.height / 2)
-
+    text_box.offset = (-ui_viewport.get_width() / 5, -ui_viewport.height / 2)
+    # text_box.offset = (0,0)
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
-    player.draw(camera=camera)
+    player.draw(camera=camera, uicamera=ui_camera)
     text_box.draw(camera=ui_camera)
-    
-    # ui_camera.blit(
-    #     weapon.process(Vector2(input.get_mouse_pos())),
-    #     (-ui_viewport.get_width() / 2, -ui_viewport.height / 2),
-    # )
+
+    if input.is_action_just_pressed(action="debug-delta"):
+        flag = not flag
+
+    if flag:
+        weapon_camera.blit(
+            player.weapon.process(Vector2(input.get_mouse_pos())),
+            (-weapon_viewport.get_width() / 2, -weapon_viewport.height / 2),
+        )
 
     window.swap_buffers()

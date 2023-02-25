@@ -16,4 +16,5 @@ class Item:
     weight: float
     shape: Tuple[int, int] = (1, 1)
     ammo_type: str = ""
+    color: Tuple[float, float, float] = (0, 0, 0)
 
