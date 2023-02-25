@@ -16,6 +16,7 @@ import enemy, time
 
 from components.bullet import BulletManager
 from components.dialog_box import DialogBox
+from components.parallax import Parallax
 
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
@@ -169,6 +170,9 @@ enemy.add_enemy(
 )
 # enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
 
+parallax = Parallax(
+    path="res/miasteczko-agh.png", height=720, movement_scale=Vector2(0, 0)
+)
 
 # main game loop
 while window.is_open():
@@ -188,5 +192,6 @@ while window.is_open():
     weapon_manager.draw(camera=ui_camera)
     text_box.draw(camera=ui_camera)
     dialog_box.draw(camera=ui_camera)
+    parallax.draw(camera=camera)
 
     window.swap_buffers()
