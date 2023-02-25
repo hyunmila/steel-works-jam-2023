@@ -110,24 +110,24 @@ class Player:
             if window.get_input().is_action_pressed("left"):
                 acceleration.x -= x_val
 
-        if window.get_input().is_action_pressed("jump"):
-            # if pressed_keys[pygame.K_w]:
-            if self.is_jumping == False and self.is_able_to_jump == True:
-                self.t_start = perf_counter()
-                self.is_jumping = True
-                self.is_able_to_jump = False
-            if self.is_jumping == True:
-                self.t_stop = perf_counter()
-                if (self.t_stop - self.t_start) <= 0.3:
-                    factor = (self.t_stop - self.t_start)*3
-                    self.velocity.y = -13
-                    #print(self.velocity)
-                    # acceleration.y = -30*(3.5-factor)
-                else:
-                    self.is_jumping = False
+            if window.get_input().is_action_pressed("jump"):
+                # if pressed_keys[pygame.K_w]:
+                if self.is_jumping == False and self.is_able_to_jump == True:
+                    self.t_start = perf_counter()
+                    self.is_jumping = True
                     self.is_able_to_jump = False
-        else:
-            self.is_jumping = False
+                if self.is_jumping == True:
+                    self.t_stop = perf_counter()
+                    if (self.t_stop - self.t_start) <= 0.3:
+                        factor = (self.t_stop - self.t_start) * 3
+                        self.velocity.y = -13
+                        # print(self.velocity)
+                        # acceleration.y = -30*(3.5-factor)
+                    else:
+                        self.is_jumping = False
+                        self.is_able_to_jump = False
+            else:
+                self.is_jumping = False
 
             if window.get_input().is_action_pressed("left"):
                 # if pressed_keys[pygame.K_a]:
@@ -180,7 +180,7 @@ class Player:
         # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
         # print("PRE", self.velocity, self.position)
-            
+
         self.position.y = lerp(
             self.position.y, self.position.y + (self.velocity.y * dt), fy
         )

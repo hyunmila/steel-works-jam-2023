@@ -112,9 +112,7 @@ text_box = TextBox(
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
-text_box.set_text(
-    "Get out of here.\nQuickly"
-)
+text_box.set_text("Get out of here.\nQuickly")
 # text_box.offset = (50,0)
 
 # text in 3D space
@@ -225,6 +223,6 @@ while window.is_open():
     weapon_manager.draw(camera=ui_camera)
     text_box.draw(camera=ui_camera)
     dialog_box.draw(camera=ui_camera)
-    parallax.draw(camera=camera)
+    # parallax.draw(camera=camera)
 
     window.swap_buffers()
