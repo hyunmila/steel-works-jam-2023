@@ -5,10 +5,12 @@ from pygame.math import Vector2 as Vec2
 from core.color import Color
 import abc
 from core.camera import Camera
+from core.window import Window
 from components.map import Map
 from core.math import BBox, lerp
 from typing import List
 from time import perf_counter
+from core.animation import Animation
 
 
 class Box:
@@ -34,6 +36,7 @@ class Box:
 
 PIXEL_SIZE = 64
 
+# kolizje sprawdzamy w Enemy
 
 class Enemy(metaclass=abc.ABCMeta):
     def __init__(self, path, pos: Vec2, dist, vel: Vec2, collision_map: Map):
@@ -218,25 +221,16 @@ class Enemy(metaclass=abc.ABCMeta):
             self.rect.x = old_position.x
             # print("x2", self.position.x)
             self.vel.x = 0
-
+   
     # to update all status about enemy
-    def update(self, player_pos, camera: Camera, dt):
+    def update(self, player_pos, window: Window, dt):
         pass
 
-    def range_attack(self):
+    def draw(self, camera: Camera, animation):
+        camera.blit(animation.get_frame(), self.rect * PIXEL_SIZE)
+    
+    def get_class(self):
         pass
-
-    def draw(self, camera: Camera, surface, pos):
-        camera.blit(surface, pos)
-
-    def getRect(self) -> pygame.Rect:
-        return self.rect
-
-    def setPosX(self, pos):
-        self.rect.x += pos
-
-    def setPosY(self, pos):
-        self.rect.y += pos
 
 
 class Warrior(Enemy):
@@ -245,73 +239,21 @@ class Warrior(Enemy):
         self.strong_attack = False
         # self.cooldown = cooldown
 
-    def update(self, player_pos, camera: Camera, dt):
+    def update(self, window: Window, animation : Animation,  player_pos):
         f = 0.2
         old_vel = self.vel
 
         if 0.7 < self.activate(player_pos) < self.dist:
-            self.move(player_pos, dt)
+            self.move(player_pos, window.get_delta())
         else:
-            self.gravity(dt)
-
-        # self.ability(5)
-        self.draw(
-            camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE)
-        )
-        self.vel = old_vel
+            self.gravity(window.get_delta())
+        
+        animation.update(window)
 
 
-class Bullet:
-    def __init__(
-        self, path, position: Vec2, vel: Vec2, direction: Vec2, collision_map: Map
-    ):
-        self.vel = vel
-        self.image = pygame.image.load(path).convert_alpha()
-        self.position = position
-        self.direction = direction  # Vector2 like [0,-1] - normalized
-        self.collision_map = collision_map
-
-    def draw(self, camera, surf, pos):
-        camera.blit(surf, pos)
-
-    def update(self, camera, dt):
-        f = 0.2
-        if not self.collision_map.rect_collision(
-            bbox=BBox(self.position.x, self.position.y, 1, 1)
-        ):
-            print(self.position)
-            if self.direction.x < 0:
-                self.position.x = lerp(
-                    self.position.x,
-                    self.position.x + (self.vel.x * self.direction.x * dt),
-                    f,
-                )
-            else:
-                self.position.x = lerp(
-                    self.position.x,
-                    self.position.x + (self.vel.x * self.direction.x * dt),
-                    f,
-                )
-
-            if self.direction.y < 0:
-                self.position.y = lerp(
-                    self.position.y,
-                    self.position.y + (self.vel.y * self.direction.y * dt),
-                    f,
-                )
-            else:
-                self.position.y = lerp(
-                    self.position.y,
-                    self.position.y + (self.vel.y * self.direction.y * dt),
-                    f,
-                )
-
-            self.draw(camera, self.image, self.position)
-            return True
-        else:
-            return False
-
-
+    def get_class(self) -> str:
+        return "warrior"
+    
 class Sorcerer(Enemy):
     def __init__(self, path, pos, dist, vel, collision_map):
         super().__init__(path, pos, dist, vel, collision_map)
@@ -319,7 +261,7 @@ class Sorcerer(Enemy):
         self.bullets = []
 
     def shoot(self, player_pos):
-        if self.shoots(player_pos):
+        if self.can_shoot(player_pos):
             print("OK")
 
     def update(self, player_pos, camera: Camera, dt):
@@ -363,10 +305,45 @@ class Sorcerer(Enemy):
         )
         self.vel = old_vel
 
-    def shoots(self, player_pos):
+    def can_shoot(self, player_pos):
         if self.activate(player_pos) < self.dist - 1:
             return True
         return False
+
+    def get_class(self):
+        return "sorcerer"
+
+
+warrior_anim = Animation(pygame.transform.scale(pygame.image.load("path...."), (64 * 2, 64)),
+                          cols= 2, frame_rate= 8)
+sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
+                          , cols=-1, frame_rate= 8)
+class EnemyMenager:
+    def __init__(self, collision_map : Map):
+        self._enemies = []
+        self.collision_map = collision_map
+        self._classes = {"warrior" : Warrior, "sorcerer" : Sorcerer}
+        self._animations = {"warrior" :  warrior_anim, "sorcerer": sorcer_anim} # fill with path
+
+    def get_enemies(self) -> List[Enemy]:
+        return self._enemies
+
+    def add_enemy(self, enemy_class : str, possition : Vec2):
+        def on_collision(enemy):
+            self._enemies.remove(enemy)
+        
+        self._enemies.append(self._classes[enemy_class]())
+    
+    def remove_enemy(self, enemy : Enemy):
+        self._enemies.remove(enemy)
+
+    def update(self, window : Window, player_pos : Vec2):
+        for enemy in self._enemies:
+            enemy.update(window, self._animations[enemy.get_class()], player_pos)
+
+    def draw(self, camera : Camera):
+        for enemy in self._enemies:
+            enemy.draw(camera, self._animations[enemy.get_class()])
 
 
 enemies = []
@@ -457,3 +434,9 @@ def update_all(player_pos, camera, timer):
 
 if __name__ == "__main__":
     pass
+
+
+# update 
+# draw
+
+# zhardcodzic path do zfd

@@ -15,6 +15,8 @@ from components.player import Player
 from components.text_box import TextBox
 from components.map import Map, Tile
 
+from enemy import EnemyMenager
+
 from item import Item, ItemType
 from components.weapon import WeaponManager
 import enemy, time
@@ -95,6 +97,7 @@ dialog_box.show(
 
 weapon_manager = WeaponManager()
 bullet_manager = BulletManager(collision_map=map)
+enemy_manager = EnemyMenager(collision_map=map)
 
 # player controller with camera following
 player = Player(
@@ -169,32 +172,9 @@ spatial_text_box.offset = (100, 100)
 
 # ENEMY testing
 enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(10, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(11, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(12, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map ) 
 
-enemy.add_enemy(
-    "sorcerer",
-    "res/wojownik-atakuje.png",
-    Vec2(1, 1),
-    5,
-    Vec2(20, 20),
-    collision_map=map,
-)
+enemy_manager.add_enemy("warrior", Vec2(9, 12))
 # enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
 
 parallax = Parallax(
@@ -212,16 +192,18 @@ while window.is_open():
 
     weapon_manager.update(window=window)
     player.update(window=window)
+    enemy_manager.update(window=window)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
     bullet_manager.update(window=window)
     dialog_box.update(window=window)
 
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
-    enemy.update_all(player.position, camera, window.get_delta())
+    # enemy.update_all(player.position, camera, window.get_delta())
     player.draw(camera=camera, ui_camera=ui_camera)
     bullet_manager.draw(camera=camera)
     weapon_manager.draw(camera=ui_camera)
+    enemy_manager.draw(camera=camera)
     text_box.draw(camera=ui_camera)
     dialog_box.draw(camera=ui_camera)
     # parallax.draw(camera=camera)
