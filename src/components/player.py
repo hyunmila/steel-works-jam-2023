@@ -1,4 +1,5 @@
 import pygame
+import os
 from pygame.math import Vector2 as Vec2
 from time import perf_counter
 
@@ -35,14 +36,18 @@ class Player:
             "standing" : [pygame.transform.scale(pygame.image.load("res/player.png"), (PIXEL_SIZE, PIXEL_SIZE))],
         }
         self.facing = "right"
-        self.hp = 0
+        # self.hp = 10
+        self.is_shot = False
+        self.game_mode()
+        self.hp = self.max_hp
         # self.acceleration = Vec2(0.0, -10.0)
 
     def update(self, window: Window):
+        
         y_val = 200
         x_val = 200
         dt = window.get_delta()
-        # print(dt)
+        # print(self.hp)
         self.ticks += dt
         if self.ticks >  0.5: # 1 tick na 16 ms
             self.animidx += 1
@@ -147,7 +152,7 @@ class Player:
             ),
         )
 
-    def draw(self, camera: Camera) -> None:
+    def draw(self, camera: Camera, uicamera: Camera) -> None:
         # surface = pygame.Surface((PIXEL_SIZE, PIXEL_SIZE))
         # pygame.draw.polygon(
         #     surface,
@@ -171,6 +176,21 @@ class Player:
                 self.position[1] * PIXEL_SIZE,
             ),
         )
+        hp_img = pygame.image.load("res/helth.png")
+        no_hp_img = pygame.image.load("res/nohelth.png")
+        # if self.hp == 10:
+        # max_hp = self.hp
+        set_y_hp = -160
+        for i in range(self.max_hp):
+            hp_y = set_y_hp + hp_img.get_height()*i
+            if i+1 <= self.hp:
+                uicamera.blit(hp_img, offset=(-320,hp_y))
+            else:
+                uicamera.blit(no_hp_img, offset=(-320,hp_y))
+
+
+
+
 
     def get_state(self):
         if self.is_able_to_jump == False: 
@@ -181,4 +201,10 @@ class Player:
             return "standing"
 
     def game_mode(self):
-        pass
+        mode = os.environ.get('NAP_GAME_MODE_SELECT_69')
+        if mode == 'easy':
+            self.max_hp = 10
+        elif mode == 'normal':
+            self.max_hp = 5
+        else:
+            self.max_hp = 3
