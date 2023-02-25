@@ -92,7 +92,7 @@ text_box = TextBox(
     line_height_factor=1.5,
 )
 text_box.set_text(
-    "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
+    "Get out of here.\nQuickly"
 )
 # text_box.offset = (50,0)
 
@@ -158,7 +158,7 @@ while window.is_open():
         print(f"delta = {window.get_delta()}")
 
     player.update(window=window)
-    text_box.offset = (-ui_viewport.get_width() / 5, -ui_viewport.height / 2)
+    text_box.offset = (-ui_viewport.get_width() / 2.5, -ui_viewport.height / 2.5)
     # text_box.offset = (0,0)
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)

@@ -1,5 +1,6 @@
 from typing import Tuple
 import pygame
+import os 
 
 from core.color import Color
 from core.input import Input
@@ -8,6 +9,7 @@ from core.input import Input
 # Window handles pygame IO.
 class Window:
     def __init__(self, title: str, size: Tuple[int, int], frame_rate: int = 60) -> None:
+        os.environ['SDL_VIDEO_CENTERED'] = '1' # centers the main window after the menu DO NOT DELETE PLS otherwise it won't work on Windows :(
         pygame.init()
         pygame.display.set_caption(title)
 
