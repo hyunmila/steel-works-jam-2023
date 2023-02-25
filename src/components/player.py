@@ -1,5 +1,5 @@
 import pygame
-from pygame.math import Vector2
+from pygame.math import Vector2 as Vec2
 from time import perf_counter
 
 import core.math
@@ -9,48 +9,108 @@ from core.camera import Camera
 
 from components.map import Map
 
-# Player size in pixels
 PIXEL_SIZE = 16
 
-
+def lerp(a, b, t):
+    return a + (b-a)*t
 class Player:
     def __init__(self, follow_camera: Camera, collision_map: Map) -> None:
+        self.inertia = 1.0 
+        self.position = Vec2(0.0, 0.0)
+        self.velocity = Vec2(0.0, 0.0)
+        self.t_start = perf_counter()
+        self.t_stop = perf_counter()
+        self.is_jumping = False
+        self.is_able_to_jump = False
+
         self.follow_camera = follow_camera
         self.collision_map = collision_map
-
-        self.position = Vector2(0.0, 0.0)
-        self.velocity = Vector2(0.0, 0.0)
+        # self.acceleration = Vec2(0.0, -10.0)
 
     def update(self, window: Window):
-        # Handle input.
-        self.velocity.x = (
-            window.get_input().get_action_value(action="right", clamp=True) * 10
-        )
-        if window.get_input().is_action_just_pressed("jump"):
-            self.velocity.y = -15
+        y_val = 200
+        x_val = 200
+        dt = window.get_delta()
 
-        # Attempt to move horizontally.
-        dx = self.velocity.x * window.get_delta()
-        self.position[0] += dx
+        print(f"self.is_able_to_jump={self.is_able_to_jump}")
+
+        acceleration = Vec2(0.0, y_val)
+
+        if window.get_input().is_action_pressed('right'):
+        # if pressed_keys[pygame.K_d]:
+            acceleration.x += x_val
+
+        if window.get_input().is_action_pressed('jump'):
+        # if pressed_keys[pygame.K_w]:
+            if self.is_jumping == False and self.is_able_to_jump == True:
+                self.t_start = perf_counter()
+                self.is_jumping = True
+                self.is_able_to_jump = False
+            if self.is_jumping == True:
+                self.t_stop = perf_counter()
+                if (self.t_stop - self.t_start) <= 1.0:
+                    acceleration.y = -y_val
+                else:
+                    self.is_jumping = False
+        else:
+            self.is_jumping = False
+
+        if window.get_input().is_action_pressed('left'):
+        # if pressed_keys[pygame.K_a]:
+            acceleration.x -= x_val
+
+        #print(acceleration)
+
+        
+        # if pressed_keys[pygame.K_s]:
+        #         acceleration.y += y_val
+        f = 0.2 # 0<f<1
+        if abs(acceleration.x) > 0:
+            self.velocity.x = lerp(self.velocity.x, self.velocity.x + (acceleration.x * self.inertia * dt), f)
+        else:
+            self.velocity.x = lerp(self.velocity.x, 0.0, f)
+
+        if abs(acceleration.y) > 0:
+            self.velocity.y = lerp(self.velocity.y, self.velocity.y + (acceleration.y * self.inertia * dt), f)
+        else:
+            self.velocity.y = lerp(self.velocity.y, 0.0, f)
+
+        
+        max_speed = 60
+        if self.velocity.length() > max_speed:
+            self.velocity = self.velocity.normalize()*max_speed
+
+        old_position = self.position.copy()
+        # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
+
+        print("PRE", self.velocity, self.position)
+
+        self.position.y = lerp(self.position.y, self.position.y + (self.velocity.y * dt), f)
+
         if self.collision_map.rect_collision(
             bbox=BBox(self.position.x, self.position.y, 1, 1)
         ):
-            self.position[0] -= dx
-            self.velocity.x = 0
+            if old_position.y < self.position.y:
+                self.is_able_to_jump = True
+            else:
+                self.is_jumping = False
 
-        # Attempt to move vertically.
-        dy = self.velocity.y * window.get_delta()
-        self.position[1] += dy
-        if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x, self.position.y, 1, 1)
-        ):
-            self.position[1] -= dy
+            self.position.y = old_position.y
             self.velocity.y = 0
 
-        # Apply gravity.
-        self.velocity.y += 40.0 * window.get_delta()
+        self.position.x = lerp(self.position.x, self.position.x + (self.velocity.x * dt), f)
 
-        # Make camera follow the player.
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.position.x, self.position.y, 1, 1)
+        ):
+            print("x1", self.position.x)
+            self.position.x = old_position.x
+            print("x2", self.position.x)
+            self.velocity.x = 0
+
+        print("POST", self.velocity, self.position)
+
+
         self.follow_camera.position = (
             core.math.lerp(
                 self.follow_camera.position[0],
