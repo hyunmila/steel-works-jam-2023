@@ -26,6 +26,7 @@ window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
 # input mappings for easier scripting
 input = window.get_input()
+input.add_action_key(action="crafting", key=pygame.K_p, scale=1)
 input.add_action_key(action="right", key=pygame.K_d, scale=1)
 input.add_action_key(action="left", key=pygame.K_a, scale=-1)
 input.add_action_key(action="right", key=pygame.K_RIGHT, scale=1)
@@ -202,7 +203,7 @@ enemy.add_enemy(
 while window.is_open():
     window.process_events()
 
-    if input.is_action_just_pressed(action="debug-delta"):
+    if input.is_action_just_pressed(action="crafting"):
         print(f"delta = {window.get_delta()}")
         player.weapon.visible = not player.weapon.visible
         duct_tape_sound.play()
