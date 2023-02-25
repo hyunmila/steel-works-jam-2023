@@ -10,7 +10,7 @@ class TextBox:
         font_path: str,
         font_size: int,
         font_color: Tuple[int, int, int],
-        line_height_factor: float = 1,
+        line_height_factor: float = 1.5,
     ) -> None:
         self._font = pygame.font.Font(font_path, font_size)
         self._font_color: Tuple[int, int, int] = font_color
@@ -21,6 +21,8 @@ class TextBox:
     def set_text(self, text: str):
         # Split the text block by newlines.
         lines = text.split("\n")
+        if lines[-1] == "":
+            lines.pop()
 
         # Render each line.
         rendered_lines = []
@@ -38,6 +40,12 @@ class TextBox:
         # Blit each rendered line onto the surface.
         for i, rendered_line in enumerate(rendered_lines):
             self._rendered_text.blit(rendered_line, (0, i * self._line_height))
+
+    def get_size(self) -> Tuple[int, int]:
+        if self._rendered_text is None:
+            return (0, 0)
+        else:
+            return self._rendered_text.get_size()
 
     def draw(self, camera: Camera):
         # Abort if there's noting to draw.

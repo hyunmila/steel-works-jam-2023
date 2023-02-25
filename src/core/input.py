@@ -72,6 +72,15 @@ class Input:
 
         return False
 
+    def is_any_key_pressed(self) -> bool:
+        return len(self._pressed_keys) > 0
+
+    def is_any_key_just_pressed(self) -> bool:
+        return len(self._just_pressed_keys) > 0
+
+    def is_any_key_just_released(self) -> bool:
+        return len(self._just_released_keys) > 0
+
     # Retrieves current mouse position.
     def get_mouse_pos(self) -> Tuple[int, int]:
         return pygame.mouse.get_pos()

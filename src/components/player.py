@@ -12,6 +12,7 @@ from math import atan2, pi
 
 from components.map import Map
 from components.bullet import BulletManager
+from components.dialog_box import DialogBox
 
 PIXEL_SIZE = 64
 
@@ -28,6 +29,7 @@ class Player:
         collision_map: Map,
         weapon_manager: WeaponManager,
         bullet_manager: BulletManager,
+        dialog_box: DialogBox,
     ) -> None:
         self.inertia = 1.0
         self.position = Vec2(0.0, 0.0)
@@ -71,6 +73,7 @@ class Player:
 
         self.weapon_rotation = 0
         self.bullet_manager = bullet_manager
+        self.dialog_box = dialog_box
 
     def rotate_weapon(self, window: Window):
         mouse_pos = Vec2(window.get_input().get_mouse_pos())
@@ -94,28 +97,34 @@ class Player:
 
         acceleration = Vec2(0.0, y_val)
 
-        if window.get_input().is_action_pressed("right"):
-            # if pressed_keys[pygame.K_d]:
-            acceleration.x += x_val
+        if not self.dialog_box.is_shown():
+            if window.get_input().is_action_pressed("right"):
+                # if pressed_keys[pygame.K_d]:
+                acceleration.x += x_val
 
-        if window.get_input().is_action_pressed("jump"):
-            # if pressed_keys[pygame.K_w]:
-            if self.is_jumping == False and self.is_able_to_jump == True:
-                self.t_start = perf_counter()
-                self.is_jumping = True
-                self.is_able_to_jump = False
-            if self.is_jumping == True:
-                self.t_stop = perf_counter()
-                if (self.t_stop - self.t_start) <= 0.65:
-                    acceleration.y = -y_val
-                else:
-                    self.is_jumping = False
-        else:
-            self.is_jumping = False
+            if window.get_input().is_action_pressed("jump"):
+                # if pressed_keys[pygame.K_w]:
+                if self.is_jumping == False and self.is_able_to_jump == True:
+                    self.t_start = perf_counter()
+                    self.is_jumping = True
+                    self.is_able_to_jump = False
+                if self.is_jumping == True:
+                    self.t_stop = perf_counter()
+                    if (self.t_stop - self.t_start) <= 0.65:
+                        acceleration.y = -y_val
+                    else:
+                        self.is_jumping = False
+            else:
+                self.is_jumping = False
 
-        if window.get_input().is_action_pressed("left"):
-            # if pressed_keys[pygame.K_a]:
-            acceleration.x -= x_val
+            if window.get_input().is_action_pressed("left"):
+                # if pressed_keys[pygame.K_a]:
+                acceleration.x -= x_val
+
+            if window.get_input().is_action_just_pressed("fire"):
+                dir = Vec2(1, 0).rotate(self.weapon_rotation)
+                pos = self.position + dir * 0.5
+                self.bullet_manager.add_bullet(position=pos, direction=dir)
 
         # print(acceleration)
         if self.is_jumping == False and self.is_able_to_jump == False:
@@ -203,11 +212,6 @@ class Player:
                 5.0 * window.get_delta(),
             ),
         )
-
-        if window.get_input().is_action_just_pressed("fire"):
-            dir = Vec2(1, 0).rotate(self.weapon_rotation)
-            pos = self.position + dir * 0.5
-            self.bullet_manager.add_bullet(position=pos, direction=dir)
 
     def draw(self, camera: Camera, ui_camera: Camera) -> None:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
