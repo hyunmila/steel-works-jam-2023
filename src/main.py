@@ -35,8 +35,13 @@ input.add_action_key(action="inventory", key=pygame.K_i)
 
 viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
-main_song = Sound("res/main.wav")
-main_song.play(loop=True)
+
+main_song = Sound("res/main.wav", loop=True, volume=0.2)
+main_song.play()
+
+beam_sound = Sound("res/beam.mp3")
+duct_tape_sound = Sound("res/duct_tape.mp3", volume=0.5)
+
 ui_camera = Camera(viewport=viewport)
 
 turbokserokopiarka = Item(
@@ -162,6 +167,7 @@ while window.is_open():
     if input.is_action_just_pressed(action="debug-delta"):
         print(f"delta = {window.get_delta()}")
         player.weapon.visible = not player.weapon.visible
+        duct_tape_sound.play()
 
     player.update(window=window)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)

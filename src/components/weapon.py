@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional
 from item import Item, ItemType
 from inventory import Inventory
 from pygame.math import Vector2 as Vec2
+from core.music import Sound
 
 # from core.camera import Camera
 from components.text_box import TextBox
@@ -21,6 +22,9 @@ class Weapon:
         self.selected_item: Optional[Item] = None
         self.visible = False
         self.surface = None
+        self.thud_sound = Sound("res/thud.mp3")
+        self.pickup_sound = Sound("res/pickup.mp3")
+
 
     def is_valid(self, spot, item):
         rect = pygame.Rect(spot, item.shape)
@@ -56,6 +60,7 @@ class Weapon:
         if self.is_valid(spot, item) and self.inventory.get_count(item) > 0:
             self.items.append((item, spot))
             self.inventory.remove_item(item)
+            self.thud_sound.play()
 
     def load_grid(self):
         self.GRID = [
@@ -188,6 +193,7 @@ class Weapon:
                     k = self.get_item_index_at_spot(Vec2(i, j))
                     if k is not None and pressed[2]:
                         item, _ = self.items.pop(k)
+                        self.pickup_sound.play()
                         self.inventory.add_item(item)
 
                 pygame.draw.rect(grid_surface, color, rect)
