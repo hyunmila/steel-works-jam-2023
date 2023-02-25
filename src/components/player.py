@@ -149,7 +149,7 @@ class Player:
         # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
         # print("PRE", self.velocity, self.position)
-
+            
         self.position.y = lerp(
             self.position.y, self.position.y + (self.velocity.y * dt), fy
         )

@@ -8,13 +8,14 @@ from core.camera import Camera
 from components.map import Map
 from core.math import BBox, lerp
 from typing import List
+from time import perf_counter
 
 
 class Box:
     def __init__(self, pos, size):
         self.pos = pos
         self.size = size
-        self.velocity = Vec2(0.0, 0.0)
+        self.vel = Vec2(0.0, 0.0)
 
     def get_points(self):
         l = Vec2(0, self.size.y / 2)
@@ -28,7 +29,7 @@ class Box:
         )
 
     # def move(self, dt):
-    #     self.pos += self.velocity * dt
+    #     self.pos += self.vel * dt
 
 
 PIXEL_SIZE = 64
@@ -40,27 +41,102 @@ class Enemy(metaclass=abc.ABCMeta):
         self.image = pygame.transform.scale(self.image, (PIXEL_SIZE, PIXEL_SIZE))
         # self.rect = self.image.get_rect(center=(pos[0] * PIXEL_SIZE, pos[1] * PIXEL_SIZE))
         self.rect = pos
-        self.gravity = 0
         self.vel = vel
         self.dist = dist
         self.collision_map = collision_map
         self.health = 3
         self.ticks = 0
+        self.is_jumping = False
+        self.is_able_to_jump = False
+        self.t_start = perf_counter()
+        self.t_stop = perf_counter()
+        self.inertia = 1
+
 
     def activate(self, pos):
         return Vec2(pos.x - self.rect.x, pos.y - self.rect.y).length()
 
-    def move(self, player_pos, dt):
-        f = 0.2
-        old_position = self.rect.copy()
+    def air_check(self, pos, vec : Vec2): # true if there is no colision
+        return not self.collision_map.get_tile(int(pos.x + vec.x), int(pos.y + vec.y)).collision
 
-        if self.rect.y < player_pos.y:
-            self.rect.y = lerp(self.rect.y, self.rect.y + (self.vel.y * dt), f)
+    def move(self, player_pos, dt):
+
+        old_position = self.rect.copy()
+        
+        x_val = 2000
+        y_val = 2000
+        fy = 0.7
+
+        acceleration = Vec2(0.0, y_val)
+        # ------------------------------------------------------------
+
+        if player_pos.x > self.rect.x: # warunek chodzenia w prawo
+            acceleration.x += x_val
+        if player_pos.x < self.rect.x: # warunek dla chodzenia w lewo
+            acceleration.x -= x_val
+            
+        if player_pos.y < self.rect.y: # warunek skoku
+            if self.is_jumping == False and self.is_able_to_jump == True:
+                self.t_start = perf_counter()
+                self.is_jumping = True
+                self.is_able_to_jump = False
+            if self.is_jumping == True:
+                self.t_stop = perf_counter()
+                if (self.t_stop - self.t_start) <= 0.65:
+                    acceleration.y = -y_val*2
+                else:
+                    self.is_jumping = False
         else:
-            self.rect.y = lerp(self.rect.y, self.rect.y + (-self.vel.y * dt), f)
+            self.is_jumping = False
+
+        
+
+        # print(acceleration)
+        if self.is_jumping == False and self.is_able_to_jump == False:
+            acceleration.y += 1.50 * y_val
+
+        fx = 0.70  # 0<f<1
+        fy = 0.70  # 0<f<1
+        if abs(acceleration.x) > 0:
+            self.vel.x = lerp(
+                self.vel.x,
+                self.vel.x + (acceleration.x * self.inertia * dt),
+                fx,
+            )
+        else:
+            self.vel.x = lerp(self.vel.x, 0.0, fx)
+
+        if abs(acceleration.y) > 0:
+            self.vel.y = lerp(
+                self.vel.y,
+                self.vel.y + (acceleration.y * self.inertia * dt),
+                fy,
+            )
+        else:
+            self.vel.y = lerp(self.vel.y, 0.0, fy)
+
+        print(f'VELOCITY: {self.vel}')
+
+        if self.vel.x > 0:
+            self.facing = "right"
+        elif self.vel.x < 0:
+            self.facing = "left"
+
+        max_speed = random.randint(3,20)
+        if self.vel.length() > max_speed:
+            self.vel = self.vel.normalize() * max_speed
+
+        old_position = self.rect.copy()
+        # self.position = self.position.lerp(self.position + (self.vel * dt), f)
+
+        # print("PRE", self.vel, self.position)
+            
+        self.rect.y = lerp(
+            self.rect.y, self.rect.y + (self.vel.y * dt), fy
+        )
 
         if self.collision_map.rect_collision(
-            bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
         ):
             if old_position.y < self.rect.y:
                 self.is_able_to_jump = True
@@ -68,17 +144,93 @@ class Enemy(metaclass=abc.ABCMeta):
                 self.is_jumping = False
 
             self.rect.y = old_position.y
+            self.vel.y = 0
 
-
-        if self.rect.x < player_pos.x:
-            self.rect.x = lerp(self.rect.x, self.rect.x + (self.vel.x * dt), f)
-        else:
-            self.rect.x = lerp(self.rect.x, self.rect.x + (-self.vel.x * dt), f)
+        self.rect.x = lerp(
+            self.rect.x, self.rect.x + (self.vel.x * dt), fx
+        )
 
         if self.collision_map.rect_collision(
-            bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
         ):
+            # print("x1", self.position.x)
             self.rect.x = old_position.x
+            # print("x2", self.position.x)
+            self.vel.x = 0
+
+    def gravity(self, dt):
+        f = 0.2
+        old_position = self.rect.copy()
+        
+        y_val = 300
+        fy = 0.50
+
+        acceleration = Vec2(0.0, y_val)
+        
+        if self.is_jumping == False and self.is_able_to_jump == False:
+            acceleration.y += 1.50 * y_val
+
+        fx = 0.45  # 0<f<1
+        fy = 0.50  # 0<f<1
+        if abs(acceleration.x) > 0:
+            self.vel.x = lerp(
+                self.vel.x,
+                self.vel.x + (acceleration.x * self.inertia * dt),
+                fx,
+            )
+        else:
+            self.vel.x = lerp(self.vel.x, 0.0, fx)
+
+        if abs(acceleration.y) > 0:
+            self.vel.y = lerp(
+                self.vel.y,
+                self.vel.y + (acceleration.y * self.inertia * dt),
+                fy,
+            )
+        else:
+            self.vel.y = lerp(self.vel.y, 0.0, fy)
+
+        if self.vel.x > 0:
+            self.facing = "right"
+        elif self.vel.x < 0:
+            self.facing = "left"
+
+        max_speed = 5
+        if self.vel.length() > max_speed:
+            self.vel = self.vel.normalize() * max_speed
+
+        old_position = self.rect.copy()
+        # self.position = self.position.lerp(self.position + (self.vel * dt), f)
+
+        # print("PRE", self.vel, self.position)
+            
+        self.rect.y = lerp(
+            self.rect.y, self.rect.y + (self.vel.y * dt), fy
+        )
+
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
+        ):
+            if old_position.y < self.rect.y:
+                self.is_able_to_jump = True
+            else:
+                self.is_jumping = False
+
+            self.rect.y = old_position.y
+            self.vel.y = 0
+
+        self.rect.x = lerp(
+            self.rect.x, self.rect.x + (self.vel.x * dt), fx
+        )
+
+        if self.collision_map.rect_collision(
+            bbox=BBox(self.rect.x + 0.2, self.rect.y + 0.1, 0.6, 0.9)
+        ):
+            # print("x1", self.position.x)
+            self.rect.x = old_position.x
+            # print("x2", self.position.x)
+            self.vel.x = 0
+
 
     # to update all status about enemy
     def update(self, player_pos, camera: Camera, dt):
@@ -112,6 +264,8 @@ class Warrior(Enemy):
 
         if 0.7 < self.activate(player_pos) < self.dist:
             self.move(player_pos, dt)
+        else:
+            self.gravity(dt)
 
         # self.ability(5)
         self.draw(

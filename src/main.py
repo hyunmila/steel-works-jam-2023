@@ -142,8 +142,24 @@ spatial_text_box.offset = (100, 100)
 
 # ENEMY testing
 enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20, 20), collision_map=map
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
 )
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(10, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(11, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(12, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
+)
+
 enemy.add_enemy(
     "sorcerer",
     "res/wojownik-atakuje.png",
