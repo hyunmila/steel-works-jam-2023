@@ -18,6 +18,7 @@ class Input:
         if not action in self._actions:
             self._actions[action] = dict()
 
+        print(f"Added {action}")
         self._actions[action][key] = scale
 
     def clear_actions(self) -> None:
