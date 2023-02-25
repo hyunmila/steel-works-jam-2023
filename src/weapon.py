@@ -111,7 +111,8 @@ class Weapon:
         return False or not self.is_connected()
 
     def get_weapon_as_surface(self):
-        weapon_surface = pygame.Surface((self.GRID_WIDTH, self.GRID_HEIGHT))
+        weapon_surface = pygame.Surface((self.GRID_WIDTH, self.GRID_HEIGHT), pygame.SRCALPHA, 32)
+        weapon_surface = weapon_surface.convert_alpha()
         self.load_grid()
 
         for i in range(len(self.GRID)):
@@ -243,7 +244,6 @@ class Weapon:
             surface.blit(s, mouse_position)
 
         # surface.blit(pygame.transform.scale_by(self.get_weapon_as_surface(), 10), (0, 0))
-        print("WILL BLOW UP:", self.will_blow_up())
         self.surface = surface
         return surface
     

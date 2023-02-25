@@ -6,6 +6,8 @@ import core.math
 from core.math import BBox
 from core.window import Window
 from core.camera import Camera
+from weapon import Weapon
+from math import atan2, pi
 
 from components.map import Map
 
@@ -22,12 +24,24 @@ class Player:
         self.t_stop = perf_counter()
         self.is_jumping = False
         self.is_able_to_jump = False
+        self.weapon = Weapon()
 
         self.follow_camera = follow_camera
         self.collision_map = collision_map
         # self.acceleration = Vec2(0.0, -10.0)
 
+        self.weapon_rotation = 0
+
+    def rotate_weapon(self, window: Window):
+
+        mouse_pos = Vec2(window.get_input().get_mouse_pos())
+        center = Vec2(window._surface.get_width(), window._surface.get_height())/2
+        vec = mouse_pos-center
+        self.weapon_rotation = atan2(vec.y, vec.x) * 180/pi
+
     def update(self, window: Window):
+        self.rotate_weapon(window)
+
         y_val = 200
         x_val = 200
         dt = window.get_delta()
@@ -110,6 +124,10 @@ class Player:
 
         print("POST", self.velocity, self.position)
 
+        while item := self.collision_map.take_usable_collision(
+            bbox=BBox(self.position.x, self.position.y, 1, 1)
+        ):
+            self.weapon.add_item(item)
 
         self.follow_camera.position = (
             core.math.lerp(
@@ -125,20 +143,32 @@ class Player:
         )
 
     def draw(self, camera: Camera) -> None:
-        surface = pygame.Surface((PIXEL_SIZE, PIXEL_SIZE))
+        surface = pygame.Surface((PIXEL_SIZE*2, PIXEL_SIZE*2), pygame.SRCALPHA, 32)
+        surface = surface.convert_alpha()
+        offset = Vec2(PIXEL_SIZE, PIXEL_SIZE)/2
+
         pygame.draw.polygon(
             surface,
             (255, 0, 0),
             (
-                (0, 0),
-                (PIXEL_SIZE, 0),
-                (PIXEL_SIZE, PIXEL_SIZE),
-                (0, PIXEL_SIZE),
+                offset+Vec2(0, 0),
+                offset+Vec2(PIXEL_SIZE, 0),
+                offset+Vec2(PIXEL_SIZE, PIXEL_SIZE),
+                offset+Vec2(0, PIXEL_SIZE),
             ),
         )
+
+        weapon = self.weapon.get_weapon_as_surface()
+        weapon = pygame.transform.rotate(weapon, -self.weapon_rotation)
+
+        surface.blit(
+            weapon,
+            offset+(0, 4)
+        )
+
         camera.blit(
             surface=surface,
-            offset=(
+            offset=-offset+Vec2(
                 self.position[0] * PIXEL_SIZE,
                 self.position[1] * PIXEL_SIZE,
             ),

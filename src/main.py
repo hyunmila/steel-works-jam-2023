@@ -39,11 +39,34 @@ ui_camera = Camera(viewport=ui_viewport)
 weapon_viewport = Viewport(window=window, height=720)
 weapon_camera = Camera(viewport=weapon_viewport)
 
+
+turbokserokopiarka = Item(
+    name="turbokserokopiarka",
+    img = pygame.image.load("res/turbokserokopiarka.png"),
+    item_type = ItemType.GUN,
+    ammo_type="dupa2",
+    weight=10.0,
+    shape=(3, 3),
+    color=(255, 255, 255)
+)
+
+ultraekspres = Item(
+    name="ultraekspres",
+    img = pygame.image.load("res/ultraekspres.png"),
+    item_type = ItemType.GUN,
+    ammo_type="dupa2",
+    weight=2.0,
+    shape=(2, 2),
+    color=(255, 0, 255)
+)
+
 # game map
 map = Map(
     tiles={
         Color.WHITE: Tile("", False),
         Color.BLACK: Tile("res/metalowa-podłoga-2.png", True),
+        Color.RED: Tile("res/turbokserokopiarka.png", collision=False, item=turbokserokopiarka),
+        Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres), 
     },
     tile_size=16,
 )
@@ -75,45 +98,46 @@ spatial_text_box.set_text("tekst w przestrzeni")
 spatial_text_box.offset = (100, 100)
 
 # # TESTING: igor's item system
-weapon = Weapon()
+# weapon = Weapon()
 
-item = Item(
-    name="dupa",
-    item_type=ItemType.GUN,
-    weight=69.0,
-    shape=(2, 3),
-    ammo_type="dupa2",
-    img=pygame.image.load("res/test.png"),
-    color=Color.RED
-)
+# item = Item(
+#     name="dupa",
+#     item_type=ItemType.GUN,
+#     weight=69.0,
+#     shape=(2, 3),
+#     ammo_type="dupa2",
+#     img=pygame.image.load("res/test.png"),
+#     color=Color.RED
+# )
 
-item2 = Item(
-    name='dupa2',
-    item_type=ItemType.AMMO,
-    weight=42.0,
-    shape=(4,1),
-    ammo_type="",
-    img=pygame.image.load("res/jola.png"),
-    color=Color.GREEN
-)
+# item2 = Item(
+#     name='dupa2',
+#     item_type=ItemType.AMMO,
+#     weight=42.0,
+#     shape=(4,1),
+#     ammo_type="",
+#     img=pygame.image.load("res/jola.png"),
+#     color=Color.GREEN
+# )
 
-item3 = Item(
-    name='dupa3',
-    item_type=ItemType.CONNECT,
-    weight=45.0,
-    shape=(2,1),
-    ammo_type="",
-    img=pygame.image.load("res/wojownik-atakuje.png"),
-    color=Color.BLUE
-)
+# item3 = Item(
+#     name='dupa3',
+#     item_type=ItemType.CONNECT,
+#     weight=45.0,
+#     shape=(2,1),
+#     ammo_type="",
+#     img=pygame.image.load("res/wojownik-atakuje.png"),
+#     color=Color.BLUE
+# )
 
-weapon.add_item(item)
+# weapon.add_item(item)
 
-for _ in range(2):
-    weapon.add_item(item2)
-for _ in range(4):
-    weapon.add_item(item3)
+# for _ in range(2):
+#     weapon.add_item(item2)
+# for _ in range(4):
+#     weapon.add_item(item3)
 
+flag = False
 
 # main game loop
 while window.is_open():
@@ -130,10 +154,13 @@ while window.is_open():
     player.draw(camera=camera)
     text_box.draw(camera=ui_camera)
 
-    # if input.is_action_pressed(action="debug-delta"):
-    weapon_camera.blit(
-        weapon.process(Vector2(input.get_mouse_pos())),
-        (-weapon_viewport.get_width() / 2, -weapon_viewport.height / 2),
-    )
+    if input.is_action_just_pressed(action="debug-delta"):
+        flag = not flag
+
+    if flag:
+        weapon_camera.blit(
+            player.weapon.process(Vector2(input.get_mouse_pos())),
+            (-weapon_viewport.get_width() / 2, -weapon_viewport.height / 2),
+        )
 
     window.swap_buffers()
