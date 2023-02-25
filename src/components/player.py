@@ -57,7 +57,7 @@ class Player:
 
     def update(self, window: Window):
         self.rotate_weapon(window)
-
+        # self.inertia = max(1.0, self.weapon.get_weight())
         
         y_val = 200
         x_val = 200
@@ -85,7 +85,7 @@ class Player:
             if self.is_jumping == True:
                 self.t_stop = perf_counter()
                 if (self.t_stop - self.t_start) <= 0.65:
-                    acceleration.y = -y_val
+                    acceleration.y = -y_val*1.5
                 else:
                     self.is_jumping = False
         else:

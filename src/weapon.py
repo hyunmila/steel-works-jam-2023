@@ -43,6 +43,9 @@ class Weapon:
                 return i
         return None
 
+    def get_weight(self):
+        return sum(item.weight for item, _ in self.items)
+
     def add_item(self, item):
         self.inventory.add_item(item)
 

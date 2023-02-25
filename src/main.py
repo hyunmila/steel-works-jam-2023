@@ -1,10 +1,15 @@
 import pygame
+
+pygame.init()
+pygame.mixer.init()
+
 import os
 from pygame import Vector2
 from core.viewport import Viewport
 from core.window import Window
 from core.camera import Camera
 from core.color import Color
+from core.music import Sound
 from components.player import Player
 from components.text_box import TextBox
 from components.map import Map, Tile
@@ -40,6 +45,8 @@ ui_camera = Camera(viewport=ui_viewport)
 weapon_viewport = Viewport(window=window, height=720)
 weapon_camera = Camera(viewport=weapon_viewport)
 
+main_song = Sound("res/main.wav")
+main_song.play(loop=True)
 
 turbokserokopiarka = Item(
     name="turbokserokopiarka",
