@@ -1,4 +1,5 @@
 import pygame
+import os
 from pygame import Vector2
 from core.viewport import Viewport
 from core.window import Window
@@ -86,6 +87,7 @@ text_box = TextBox(
 text_box.set_text(
     "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
 )
+# text_box.offset = (50,0)
 
 # text in 3D space
 spatial_text_box = TextBox(
@@ -94,8 +96,10 @@ spatial_text_box = TextBox(
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
-spatial_text_box.set_text("tekst w przestrzeni")
+spatial_text_box.set_text("NAP Game- Not A Platformer Game")
 spatial_text_box.offset = (100, 100)
+
+
 
 # # TESTING: igor's item system
 # weapon = Weapon()
@@ -142,16 +146,16 @@ flag = False
 # main game loop
 while window.is_open():
     window.process_events()
-
+    # print(os.environ.get('NAP_GAME_MODE_SELECT_69'))
     if input.is_action_just_pressed(action="debug-delta"):
         print(f"delta = {window.get_delta()}")
 
     player.update(window=window)
-    text_box.offset = (-ui_viewport.get_width() / 2, -ui_viewport.height / 2)
-
+    text_box.offset = (-ui_viewport.get_width() / 5, -ui_viewport.height / 2)
+    # text_box.offset = (0,0)
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
-    player.draw(camera=camera)
+    player.draw(camera=camera, uicamera=ui_camera)
     text_box.draw(camera=ui_camera)
 
     if input.is_action_just_pressed(action="debug-delta"):
