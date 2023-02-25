@@ -4,29 +4,12 @@ from math import sqrt
 from pygame.math import Vector2 as Vec2
 from core.color import Color
 import abc
-import time
+from core.camera import Camera
+from components.map import Map
+from core.math import BBox
 
-# DRUGI MAIN ???
 
 pygame.init()
-
-WIDTH, HEIGHT = 1280, 720
-CENTER = pygame.math.Vector2(300, 300)
-__screen = pygame.display.set_mode([WIDTH, HEIGHT], pygame.RESIZABLE)
-screen = __screen.copy()
-
-pygame.display.set_caption("SteelWorksJam 2023")
-
-running = True
-
-screen.fill(Color.BLACK)
-clock = pygame.time.Clock()
-dt = clock.tick(60)
-ticks = 0
-
-VEL = 5  # global velocity
-# path = 'res/fly-1.png'
-
 
 class Box:
     def __init__(self, pos, size):
@@ -45,41 +28,48 @@ class Box:
             ((self.pos - l + t).x, (self.pos - l + t).y),
         )
 
-    def move(self, dt):
-        self.pos += self.velocity * dt
+    # def move(self, dt):
+    #     self.pos += self.velocity * dt
 
+def lerp(a, b, t):
+    return a + (b-a)*t
+
+
+PIXEL_SIZE = 16
 
 class Enemy(metaclass=abc.ABCMeta):
-    def __init__(self, path, pos, dist, vel):
+    def __init__(self, path, pos : Vec2, dist, vel : Vec2, collision_map : Map):
         self.image = pygame.image.load(path)
-        self.rect = self.image.get_rect(center=pos)
+        # self.rect = self.image.get_rect(center=(pos[0] * PIXEL_SIZE, pos[1] * PIXEL_SIZE))
+        self.rect = pos
         self.gravity = 0
         self.vel = vel
         self.dist = dist
-        self.self_space = self.rect.center
+        self.collision_map = collision_map
         self.health = 3
+        self.ticks = 0
 
     # when player is too close to enemy, then enemy is starting chaise him
     def activate(self, pos):
         return Vec2(pos.x - self.rect.x, pos.y - self.rect.y).length()
 
     # to update all status about enemy
-    def update(self, player_pos):
-        self.draw()
-        self.ability()
-        if self.activate(player_pos) < self.dist:
-            self.chase(player_pos)
-
-    @abc.abstractmethod
-    def chase(self, pos):
+    def update(self, player_pos, camera : Camera, dt):
+        pass
+    
+    def range_attack(self):
         pass
 
-    @abc.abstractmethod
-    def ability(self, cooldown):
-        pass
+    # @abc.abstractmethod
+    # def chase(self, pos):
+    #     pass
 
-    def draw(self):
-        screen.blit(self.image, self.rect)
+    # @abc.abstractmethod
+    # def ability(self, cooldown):
+    #     pass
+
+    def draw(self, camera: Camera, surface, pos):
+        camera.blit(surface, pos)
 
     def getRect(self) -> pygame.Rect:
         return self.rect
@@ -92,66 +82,204 @@ class Enemy(metaclass=abc.ABCMeta):
 
 
 class Warrior(Enemy):
-    def __init__(self, path, pos, dist, vel, cooldown=5):
-        super().__init__(path, pos, dist, vel)
+    def __init__(self, path, pos, dist, vel, collision_map):
+        super().__init__(path, pos, dist, vel, collision_map)
         self.strong_attack = False
-        self.cooldown = cooldown
-        self.start = time.time()
+        # self.cooldown = cooldown
 
-    def chase(self, pos):
-        vec = Vec2(pos.x - self.rect.x, pos.y - self.rect.y)
-        if vec.length() != 0:
-            vec.normalize_ip()
-            new_vec = Vec2(vec.x * self.vel / sqrt(2), vec.y * self.vel / sqrt(2))
 
-            self.rect.x = new_vec.x + self.rect.x
-            self.rect.y = new_vec.y + self.rect.y
+    def update(self, player_pos, camera : Camera, dt):
+        f = 0.2
+        old_vel = self.vel
+        old_position = self.rect.copy()
+        # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
-    def ability(self, cooldown):  # super attack
-        return cooldown - time.time()
+        # print("PRE", self.velocity, self.position)
+        # print("PRE", self.position)
+
+        if 0.7<self.activate(player_pos) < self.dist:
+
+            if self.rect.y < player_pos.y:
+                self.rect.y = lerp(self.rect.y, self.rect.y + (self.vel.y * dt), f)
+            else:
+                self.rect.y = lerp(self.rect.y, self.rect.y + (-self.vel.y * dt), f)
+
+            if self.collision_map.rect_collision(
+                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            ):
+                if old_position.y < self.rect.y:
+                    self.is_able_to_jump = True
+                else:
+                    self.is_jumping = False
+
+                self.rect.y = old_position.y
+
+
+            if self.rect.x < player_pos.x:
+                self.rect.x = lerp(self.rect.x, self.rect.x + (self.vel.x * dt), f)
+            else:
+                self.rect.x = lerp(self.rect.x, self.rect.x + (-self.vel.x * dt), f)
+
+            if self.collision_map.rect_collision(
+                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            ):
+                self.rect.x = old_position.x
+
+
+        # self.ability(5)
+        self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
+        self.vel = old_vel
+
+    # def ability(self, cooldown):  # super attack
+    #     return cooldown - time.time()
+
+class Bullet:
+    def __init__(self, position : Vec2, vel : Vec2, direction : Vec2, collision_map : Map):
+        self.vel = vel
+        self.position = position
+        self.direction = direction # Vector2 like [0,-1] - normalized
+        self.collision_map = collision_map
+        self.rect = pygame.Rect(position.x * PIXEL_SIZE, position.y * PIXEL_SIZE, 3, 7)
+
+    def draw(self):
+        pass
+    
+    # def update(self, camera):
+    #     if not self.collision_map.rect_collision(
+    #         bbox=BBox(self.rect.x / PIXEL_SIZE, self.rect.y / PIXEL_SIZE, 3 / PIXEL_SIZE, 7 / PIXEL_SIZE)
+    #         ):
+    #         if bullet.x < 0:
+    #             bullet.x = lerp(bullet.x, bullet.x + (-self.bullet_vel.x * dt), f)
+    #         else:
+    #             bullet.x = lerp(bullet.x, bullet.x + (self.bullet_vel.x * dt), f)
+            
+    #         if bullet.y < 0:
+    #             bullet.y = lerp(bullet.y, bullet.y + (-self.bullet_vel.y * dt), f)
+    #         else:
+    #             bullet.y = lerp(bullet.y, bullet.y + (self.bullet_vel.y * dt), f)
+    #         self.draw(camera ,self.image, bullet[1])
+    #         new_bullets.append(bullet)
+        
+    #     self.bullets = new_bullets
+    #     self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
 
 
 class Sorcerer(Enemy):
-    def __init__(self, path, pos, dist, vel):
-        super().__init__(path, pos, dist, vel)
+    def __init__(self, path, pos, dist, vel, collision_map):
+        super().__init__(path, pos, dist, vel, collision_map)
+        self.bullet_vel = Vec2(30, 30)
+        self.bullets = []
+
+    def shoot(self, player_pos):
+        if self.shoots(player_pos):
+            bullet = pygame.Rect(self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE, 10, 5)
+            # self.bullets.append((bullet, Vec2(player_pos.x - self.rect.x, player_pos.y - self.rect.y))) # (bullet, direction_of_bullet - Vec2 normalized)
+            self.bullets.append(bullet) # (bullet, direction_of_bullet - Vec2 normalized)
+            
+    def update(self, player_pos, camera : Camera, dt):
+        self.ticks += dt
+        if self.ticks > 2:
+            self.shoot(player_pos)
+            self.ticks = 0
+        f = 0.2
+
+        old_vel = self.vel
+        old_position = self.rect.copy()
+        # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
+
+        # print("PRE", self.velocity, self.position)
+        # print("PRE", self.position)
+
+        if 3<self.activate(player_pos) < self.dist:
+
+            if self.rect.y < player_pos.y:
+                self.rect.y = lerp(self.rect.y, self.rect.y + (self.vel.y * dt), f)
+            else:
+                self.rect.y = lerp(self.rect.y, self.rect.y + (-self.vel.y * dt), f)
+
+            if self.collision_map.rect_collision(
+                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            ):
+                if old_position.y < self.rect.y:
+                    self.is_able_to_jump = True
+                else:
+                    self.is_jumping = False
+
+                self.rect.y = old_position.y
 
 
-class Healer(Enemy):
-    def __init__(self, path, pos, dist, vel):
-        super().__init__(path, pos, dist, vel)
+            if self.rect.x < player_pos.x:
+                self.rect.x = lerp(self.rect.x, self.rect.x + (self.vel.x * dt), f)
+            else:
+                self.rect.x = lerp(self.rect.x, self.rect.x + (-self.vel.x * dt), f)
+
+            if self.collision_map.rect_collision(
+                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            ):
+                self.rect.x = old_position.x
+
+        new_bullets = []
+
+        # update all bullets
+        # for bullet in self.bullets:
+        #     if not self.collision_map.rect_collision(
+        #         bbox=BBox(bullet.x / PIXEL_SIZE, bullet.y / PIXEL_SIZE, 10 / PIXEL_SIZE, 5 / PIXEL_SIZE)
+        #         ):
+        #         if bullet.x < 0:
+        #             bullet.x = lerp(bullet.x, bullet.x + (-self.bullet_vel.x * dt), f)
+        #         else:
+        #             bullet.x = lerp(bullet.x, bullet.x + (self.bullet_vel.x * dt), f)
+                
+        #         if bullet.y < 0:
+        #             bullet.y = lerp(bullet.y, bullet.y + (-self.bullet_vel.y * dt), f)
+        #         else:
+        #             bullet.y = lerp(bullet.y, bullet.y + (self.bullet_vel.y * dt), f)
+        #         self.draw(camera ,self.image, bullet[1])
+        #         new_bullets.append(bullet)
+        
+        # self.bullets = new_bullets
 
 
-class Tank(Enemy):
-    def __init__(self, path, pos, dist, vel):
-        super().__init__(path, pos, dist, vel)
+        # ______________________________________________________
 
-    def chase(self, pos):
-        pass
+        # self.ability(5)
+        self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
+        self.vel = old_vel
+
+    def shoots(self, player_pos):
+        if self.activate(player_pos) < self.dist - 1:
+            return True
+        return False
 
 
-class Archer(Enemy):
-    def __init__(self, path, pos, dist, vel):
-        super().__init__(path, pos, dist, vel)
-
+enemies = []
+bullets = []
+dt = 0
+enum = {'warrior' : Warrior, 'sorcerer': Sorcerer}
+VEL = 5  # global velocity
 
 def enemy_collision(enemies: list[Enemy]):
     n = len(enemies)
     dt = 10
-    for _ in range(1000):
+    for _ in range(3):
         random.shuffle(enemies)
         for i in range(n - 1):
             for j in range(i + 1, n):
-                box1 = Box(
-                    Vec2(enemies[i].getRect().topright),
-                    Vec2(enemies[i].getRect().width, enemies[i].getRect().height),
-                )  # Rect()
-                box2 = Box(
-                    Vec2(enemies[j].getRect().topright),
-                    Vec2(enemies[j].getRect().width, enemies[j].getRect().height),
-                )  # Rect()
+                # box1 = Box(
+                #     Vec2(enemies[i].getRect().topright),
+                #     Vec2(enemies[i].getRect().width, enemies[i].getRect().height),
+                # )  # Rect()
+                # box2 = Box(
+                #     Vec2(enemies[j].getRect().topright),
+                #     Vec2(enemies[j].getRect().width, enemies[j].getRect().height),
+                # )  # Rect()
 
-                rect1 = enemies[i].getRect()
-                rect2 = enemies[j].getRect()
+                box1 = Box(enemies[i].rect * PIXEL_SIZE, Vec2(PIXEL_SIZE, PIXEL_SIZE))
+                box2 = Box(enemies[j].rect * PIXEL_SIZE, Vec2(PIXEL_SIZE, PIXEL_SIZE))
+
+
+                # rect1 = enemies[i].getRect()
+                # rect2 = enemies[j].getRect()
 
                 l1 = box1.pos - box1.size / 2
                 r1 = box1.pos + box1.size / 2
@@ -164,18 +292,18 @@ def enemy_collision(enemies: list[Enemy]):
                 if x <= 0 or y <= 0:
                     continue
 
-                vec1 = Vec2(
-                    (rect1.topleft[0] - rect1.center[0]) * 2,
-                    (rect1.topleft[1] - rect1.center[1]) * 2,
-                ).length()  # ????
+                # vec1 = Vec2(
+                #     (rect1.topleft[0] - rect1.center[0]) * 2,
+                #     (rect1.topleft[1] - rect1.center[1]) * 2,
+                # ).length()  # ????
 
-                vec = Vec2(
-                    rect1.center[0] - rect2.center[0], rect1.center[1] - rect2.center[1]
-                )
-                vec_len = vec.length()
+                # vec = Vec2(
+                #     rect1.center[0] - rect2.center[0], rect1.center[1] - rect2.center[1]
+                # )
+                # vec_len = vec.length()
 
-                if vec_len > 100:
-                    continue
+                # if vec_len > 100:
+                #     continue
 
                 if x < y:
                     if box1.pos.x > box2.pos.x:
@@ -193,56 +321,38 @@ def enemy_collision(enemies: list[Enemy]):
                     # rect2.pos.y += y
                     enemies[j].setPosY(y)
 
+                # if x < y:
+                #     if box1.pos.x > box2.pos.x: x *= -1
+                #     box1.pos.x -= x
+                #     box2.pos.x += x
+                # else:
+                #     if box1.pos.y > box2.pos.y: y *= -1
+                #     box1.pos.y -= y
+                #     box2.pos.y += y
+                
+
                 enemies[j].setPosX(random.random())
                 enemies[j].setPosY(random.random())
 
                 # enemies[i].setPosX(random.random())
                 # enemies[i].setPosY(random.random())
 
+def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
 
-player = pygame.image.load("res/snail-1.png")
-player_rec = player.get_rect(center=Vec2(100, 100))
+    if type_of_enemy is "warrior":
+        enemies.append(enum["warrior"](path, position, distance, vel_of_chase, collision_map))
 
-enemy1 = Warrior("res/fly-1.png", CENTER, 200, 4)
-warior1 = Warrior("res/fly-1.png", CENTER + Vec2(100, 100), 200, 4)
+    if type_of_enemy is "sorcerer":
+        enemies.append(enum['sorcerer'](path, position, distance, vel_of_chase, collision_map))
 
-enemies = [
-    enemy1,
-    warior1,
-    Warrior("res/fly-1.png", CENTER, 200, 4),
-    Warrior("res/fly-1.png", CENTER, 200, 4),
-]
 
-while running:
-    screen.fill(Color.BLACK)
-    dt = clock.tick(60)
-    ticks += dt
+def update_all(player_pos, camera, timer):
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    pressed_keys = pygame.key.get_pressed()
-
-    # pygame.draw.circle(screen, Color.WHITE, CENTER, 20)
-    screen.blit(player, player_rec)
-
-    if pressed_keys[pygame.K_w]:
-        player_rec.y -= VEL
-    if pressed_keys[pygame.K_s]:
-        player_rec.y += VEL
-    if pressed_keys[pygame.K_d]:
-        player_rec.x += VEL
-    if pressed_keys[pygame.K_a]:
-        player_rec.x -= VEL
+    # handle collisions of bullets
 
     for enemy in enemies:
-        enemy.update(player_rec)
-
-    __scaled = pygame.transform.scale(
-        screen, (__screen.get_width(), __screen.get_height())
-    )
-    __screen.blit(__scaled, (0, 0))
-
-    enemy_collision(enemies)
-    pygame.display.flip()
+        enemy.update(player_pos, camera, timer)
+    
+    # enemy_collision(enemies)
+if __name__ == '__main__':
+    pass

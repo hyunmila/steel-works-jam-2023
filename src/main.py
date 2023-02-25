@@ -1,5 +1,6 @@
 import pygame
 import os
+from pygame.math import Vector2 as Vec2
 from pygame import Vector2
 from core.viewport import Viewport
 from core.window import Window
@@ -11,6 +12,7 @@ from components.map import Map, Tile
 
 from item import Item, ItemType
 from weapon import Weapon
+import enemy, time
 
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
@@ -43,22 +45,22 @@ weapon_camera = Camera(viewport=weapon_viewport)
 
 turbokserokopiarka = Item(
     name="turbokserokopiarka",
-    img = pygame.image.load("res/turbokserokopiarka.png"),
-    item_type = ItemType.GUN,
+    img=pygame.image.load("res/turbokserokopiarka.png"),
+    item_type=ItemType.GUN,
     ammo_type="dupa2",
     weight=10.0,
     shape=(3, 3),
-    color=(255, 255, 255)
+    color=(255, 255, 255),
 )
 
 ultraekspres = Item(
     name="ultraekspres",
-    img = pygame.image.load("res/ultraekspres.png"),
-    item_type = ItemType.GUN,
+    img=pygame.image.load("res/ultraekspres.png"),
+    item_type=ItemType.GUN,
     ammo_type="dupa2",
     weight=2.0,
     shape=(2, 2),
-    color=(255, 0, 255)
+    color=(255, 0, 255),
 )
 
 # game map
@@ -66,8 +68,10 @@ map = Map(
     tiles={
         Color.WHITE: Tile("", False),
         Color.BLACK: Tile("res/metalowa-podłoga-2.png", True),
-        Color.RED: Tile("res/turbokserokopiarka.png", collision=False, item=turbokserokopiarka),
-        Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres), 
+        Color.RED: Tile(
+            "res/turbokserokopiarka.png", collision=False, item=turbokserokopiarka
+        ),
+        Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres),
     },
     tile_size=16,
 )
@@ -98,7 +102,6 @@ spatial_text_box = TextBox(
 )
 spatial_text_box.set_text("NAP Game - Not A Platformer Game")
 spatial_text_box.offset = (100, 100)
-
 
 
 # # TESTING: igor's item system
@@ -142,6 +145,20 @@ spatial_text_box.offset = (100, 100)
 #     weapon.add_item(item3)
 
 flag = False
+# ENEMY testing
+enemy.add_enemy(
+    "warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20, 20), collision_map=map
+)
+enemy.add_enemy(
+    "sorcerer",
+    "res/wojownik-atakuje.png",
+    Vec2(1, 1),
+    5,
+    Vec2(20, 20),
+    collision_map=map,
+)
+# enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
+
 
 # main game loop
 while window.is_open():

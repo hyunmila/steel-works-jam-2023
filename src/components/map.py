@@ -79,7 +79,6 @@ class Map:
                         tile.img,
                         (x * self._tile_size, y * self._tile_size),
                     )
-
     def rect_collision(self, bbox: BBox) -> bool:
         for x in range(math.floor(bbox.x), math.floor(bbox.x + bbox.w) + 1):
             for y in range(math.floor(bbox.y), math.floor(bbox.y + bbox.h) + 1):
