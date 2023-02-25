@@ -32,7 +32,18 @@ item = Item(
     img=pygame.image.load("res/test.png")
 )
 
+item2 = Item(
+    name='dupa2',
+    item_type=ItemType.AMMO,
+    weight=42.0,
+    shape=(4,1),
+    ammo_type="",
+    img=pygame.image.load("res/test2.png")
+)
+
+
 weapon.add_item(item)
+weapon.add_item(item2)
 
 while running:
     screen.fill(COLOR.BLACK)
