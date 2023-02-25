@@ -22,17 +22,33 @@ class Player:
         self.t_stop = perf_counter()
         self.is_jumping = False
         self.is_able_to_jump = False
-
         self.follow_camera = follow_camera
         self.collision_map = collision_map
+        self.ticks = 0
+        self.animidx = 0
+        self.images = {
+            "jumping" : [pygame.transform.scale(pygame.image.load("res/player_jump.png"), (PIXEL_SIZE, PIXEL_SIZE))],
+            "walking" : [
+                pygame.transform.scale(pygame.image.load("res/player_r.png"), (PIXEL_SIZE, PIXEL_SIZE)),
+                pygame.transform.scale(pygame.image.load("res/player_l.png"), (PIXEL_SIZE, PIXEL_SIZE))
+            ],
+            "standing" : [pygame.transform.scale(pygame.image.load("res/player.png"), (PIXEL_SIZE, PIXEL_SIZE))],
+        }
+        self.facing = "right"
+        self.hp = 0
         # self.acceleration = Vec2(0.0, -10.0)
 
     def update(self, window: Window):
         y_val = 200
         x_val = 200
         dt = window.get_delta()
-
-        print(f"self.is_able_to_jump={self.is_able_to_jump}")
+        # print(dt)
+        self.ticks += dt
+        if self.ticks >  0.5: # 1 tick na 16 ms
+            self.animidx += 1
+            # print(self.animidx)
+            self.ticks = 0
+        # print(f"self.is_able_to_jump={self.is_able_to_jump}")
 
         acceleration = Vec2(0.0, y_val)
 
@@ -48,7 +64,7 @@ class Player:
                 self.is_able_to_jump = False
             if self.is_jumping == True:
                 self.t_stop = perf_counter()
-                if (self.t_stop - self.t_start) <= 1.0:
+                if (self.t_stop - self.t_start) <= 0.65:
                     acceleration.y = -y_val
                 else:
                     self.is_jumping = False
@@ -60,32 +76,39 @@ class Player:
             acceleration.x -= x_val
 
         #print(acceleration)
-
+        if self.is_jumping == False and self.is_able_to_jump == False:
+            acceleration.y += 1.25*y_val
         
         # if pressed_keys[pygame.K_s]:
         #         acceleration.y += y_val
-        f = 0.2 # 0<f<1
+        fx = 0.45 # 0<f<1
+        fy = 0.50 # 0<f<1
         if abs(acceleration.x) > 0:
-            self.velocity.x = lerp(self.velocity.x, self.velocity.x + (acceleration.x * self.inertia * dt), f)
+            self.velocity.x = lerp(self.velocity.x, self.velocity.x + (acceleration.x * self.inertia * dt), fx)
         else:
-            self.velocity.x = lerp(self.velocity.x, 0.0, f)
+            self.velocity.x = lerp(self.velocity.x, 0.0, fx)
 
         if abs(acceleration.y) > 0:
-            self.velocity.y = lerp(self.velocity.y, self.velocity.y + (acceleration.y * self.inertia * dt), f)
+            self.velocity.y = lerp(self.velocity.y, self.velocity.y + (acceleration.y * self.inertia * dt), fy)
         else:
-            self.velocity.y = lerp(self.velocity.y, 0.0, f)
+            self.velocity.y = lerp(self.velocity.y, 0.0, fy)
 
+        if self.velocity.x > 0:
+            self.facing = "right"
+        elif self.velocity.x < 0:
+            self.facing = "left"
         
-        max_speed = 60
+        
+        max_speed = 10
         if self.velocity.length() > max_speed:
             self.velocity = self.velocity.normalize()*max_speed
 
         old_position = self.position.copy()
         # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
-        print("PRE", self.velocity, self.position)
+        # print("PRE", self.velocity, self.position)
 
-        self.position.y = lerp(self.position.y, self.position.y + (self.velocity.y * dt), f)
+        self.position.y = lerp(self.position.y, self.position.y + (self.velocity.y * dt), fy)
 
         if self.collision_map.rect_collision(
             bbox=BBox(self.position.x, self.position.y, 1, 1)
@@ -98,17 +121,17 @@ class Player:
             self.position.y = old_position.y
             self.velocity.y = 0
 
-        self.position.x = lerp(self.position.x, self.position.x + (self.velocity.x * dt), f)
+        self.position.x = lerp(self.position.x, self.position.x + (self.velocity.x * dt), fx)
 
         if self.collision_map.rect_collision(
             bbox=BBox(self.position.x, self.position.y, 1, 1)
         ):
-            print("x1", self.position.x)
+            # print("x1", self.position.x)
             self.position.x = old_position.x
-            print("x2", self.position.x)
+            # print("x2", self.position.x)
             self.velocity.x = 0
 
-        print("POST", self.velocity, self.position)
+        # print("POST", self.velocity, self.position)
 
 
         self.follow_camera.position = (
@@ -125,17 +148,22 @@ class Player:
         )
 
     def draw(self, camera: Camera) -> None:
-        surface = pygame.Surface((PIXEL_SIZE, PIXEL_SIZE))
-        pygame.draw.polygon(
-            surface,
-            (255, 0, 0),
-            (
-                (0, 0),
-                (PIXEL_SIZE, 0),
-                (PIXEL_SIZE, PIXEL_SIZE),
-                (0, PIXEL_SIZE),
-            ),
-        )
+        # surface = pygame.Surface((PIXEL_SIZE, PIXEL_SIZE))
+        # pygame.draw.polygon(
+        #     surface,
+        #     (255, 0, 0),
+        #     (
+        #         (0, 0),
+        #         (PIXEL_SIZE, 0),
+        #         (PIXEL_SIZE, PIXEL_SIZE),
+        #         (0, PIXEL_SIZE),
+        #     ),
+        # )
+        
+        frames = self.images[self.get_state()]
+        surface = frames[self.animidx % len(frames)]
+        if self.facing == "left":
+            surface = pygame.transform.flip(surface, True, False)
         camera.blit(
             surface=surface,
             offset=(
@@ -143,3 +171,14 @@ class Player:
                 self.position[1] * PIXEL_SIZE,
             ),
         )
+
+    def get_state(self):
+        if self.is_able_to_jump == False: 
+            return "jumping"
+        if abs(self.velocity.x) > 1e-6: 
+            return "walking"
+        else:
+            return "standing"
+
+    def game_mode(self):
+        pass
