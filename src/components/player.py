@@ -105,8 +105,10 @@ class Player:
 
         if not self.dialog_box.is_shown():
             if window.get_input().is_action_pressed("right"):
-                # if pressed_keys[pygame.K_d]:
                 acceleration.x += x_val
+
+            if window.get_input().is_action_pressed("left"):
+                acceleration.x -= x_val
 
         if window.get_input().is_action_pressed("jump"):
             # if pressed_keys[pygame.K_w]:
