@@ -2,6 +2,7 @@ import pygame
 
 pygame.init()
 pygame.mixer.init()
+pygame.mixer.set_num_channels(100)
 
 import os
 from pygame.math import Vector2 as Vec2
@@ -11,9 +12,11 @@ from core.window import Window
 from core.camera import Camera
 from core.color import Color
 from core.music import Sound
+from core.animation import Animation
 from components.player import Player
 from components.text_box import TextBox
 from components.map import Map, Tile
+from components.npc import NPC
 
 from item import Item, ItemType
 from components.weapon import WeaponManager
@@ -26,7 +29,8 @@ window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
 # input mappings for easier scripting
 input = window.get_input()
-input.add_action_key(action="crafting", key=pygame.K_p, scale=1)
+input.add_action_key(action="crafting", key=pygame.K_q, scale=1)
+input.add_action_key(action="interact", key=pygame.K_e, scale=1)
 input.add_action_key(action="right", key=pygame.K_d, scale=1)
 input.add_action_key(action="left", key=pygame.K_a, scale=-1)
 input.add_action_key(action="right", key=pygame.K_RIGHT, scale=1)
@@ -77,6 +81,22 @@ map = Map(
             "res/turbokserokopiarka.png", collision=False, item=turbokserokopiarka
         ),
         Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres),
+        Color.BLUE: Tile(
+            "", collision=False, item=None,
+            interactible= NPC(
+                dialog_box=DialogBox(),
+                animation=Animation(
+                    sheet=pygame.image.load("res/jola.png").convert_alpha(),
+                    cols=4,
+                    frame_rate=5
+                ),
+                text=[
+                    "Lubie\nplacki",
+                    "AAAaaaaAAAaaaaAAAaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaA",
+                    "turbosprezarka"
+                ],
+            ),
+        )
     },
     tile_size=64,
 )
@@ -208,11 +228,13 @@ while window.is_open():
         player.weapon.visible = not player.weapon.visible
         duct_tape_sound.play()
 
+    map.update(window=window)
     weapon_manager.update(window=window)
     player.update(window=window)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
     bullet_manager.update(window=window)
-    dialog_box.update(window=window)
+    # dialog_box.update(window=window)
+    
 
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
@@ -221,6 +243,8 @@ while window.is_open():
     bullet_manager.draw(camera=camera)
     weapon_manager.draw(camera=ui_camera)
     text_box.draw(camera=ui_camera)
-    dialog_box.draw(camera=ui_camera)
+    # dialog_box.draw(camera=ui_camera)
 
     window.swap_buffers()
+
+main_song.stop()

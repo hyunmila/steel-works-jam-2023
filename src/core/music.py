@@ -1,5 +1,4 @@
 import pygame
-
 class Sound:
     def __init__(self, filename: str, loop = False, volume=1.0):
         self.sound = pygame.mixer.Sound(filename)
@@ -17,4 +16,8 @@ class Sound:
     def stop(self):
         self.sound.stop()
         self.is_playing = False
+
+    def set_volume(self, volume):
+        self.sound.set_volume(volume)
+
 

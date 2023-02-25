@@ -103,6 +103,13 @@ class Player:
 
         acceleration = Vec2(0.0, 30)
 
+        if window.get_input().is_action_just_pressed("interact"):
+            npc = self.collision_map.interaction_collision(
+                bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
+            )
+            if npc is not None:
+                self.dialog_box = npc.interact()
+
         if not self.dialog_box.is_shown():
             if window.get_input().is_action_pressed("right"):
                 acceleration.x += x_val
@@ -236,6 +243,7 @@ class Player:
         )
 
     def draw(self, camera: Camera, ui_camera: Camera) -> None:
+
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
         offset = Vec2(PIXEL_SIZE, PIXEL_SIZE) / 2
@@ -274,6 +282,9 @@ class Player:
                 ui_camera.blit(hp_img, offset=(hp_x, hp_y))
             else:
                 ui_camera.blit(no_hp_img, offset=(hp_x, hp_y))
+
+        if self.dialog_box.is_shown():
+            self.dialog_box.draw(ui_camera)
 
     def get_state(self):
         if self.is_able_to_jump == False:

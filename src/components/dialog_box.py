@@ -4,6 +4,7 @@ from core.camera import Camera
 from core.window import Window
 from components.text_box import TextBox
 from core.color import Color
+from core.music import Sound 
 
 BOX_WIDTH = 920
 
@@ -23,6 +24,7 @@ class DialogBox:
         self._shown = False
         self._empty = True
         self._dialog_queue = []
+        self._sound = Sound("res/tick.mp3")
 
     def show(self, messages: List[str]) -> None:
         self._dialog_queue = messages
@@ -31,6 +33,9 @@ class DialogBox:
         return self._shown
 
     def update(self, window: Window) -> None:
+        if not self._shown:
+            self._sound.stop()
+
         if self._empty:
             if len(self._dialog_queue) > 0:
                 self._shown = True
@@ -47,7 +52,11 @@ class DialogBox:
                 return
             self._typing_timer = 0.0
 
-            self._text += self._target_text[len(self._text)]
+            letter = self._target_text[len(self._text)]
+            self._text += letter
+            self._sound.set_volume( (ord(letter)-22)/100 )
+            self._sound.play()
+
             self.text_box.set_text(self._text)
 
     def draw(self, camera: Camera) -> None:
