@@ -4,23 +4,20 @@ from pygame.math import Vector2 as Vec2
 from time import perf_counter
 
 import core.math
-from core.math import BBox
+from core.math import BBox, lerp
 from core.window import Window
 from core.camera import Camera
-from weapon import Weapon
+from components.weapon import Weapon
 from math import atan2, pi
 
 from components.map import Map
 
-PIXEL_SIZE = 16
+PIXEL_SIZE = 64
 
-
-def bfs():
-    pass
-
-
-def lerp(a, b, t):
-    return a + (b - a) * t
+hp_img = pygame.image.load("res/helth.png")
+no_hp_img = pygame.image.load("res/nohelth.png")
+hp_img = pygame.transform.scale(hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
 
 
 class Player:
@@ -157,7 +154,7 @@ class Player:
         )
 
         if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x, self.position.y, 1, 1)
+            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
         ):
             if old_position.y < self.position.y:
                 self.is_able_to_jump = True
@@ -172,7 +169,7 @@ class Player:
         )
 
         if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x, self.position.y, 1, 1)
+            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
         ):
             # print("x1", self.position.x)
             self.position.x = old_position.x
@@ -182,7 +179,7 @@ class Player:
         # print("POST", self.velocity, self.position)
 
         while item := self.collision_map.take_usable_collision(
-            bbox=BBox(self.position.x, self.position.y, 1, 1)
+            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
         ):
             self.weapon.add_item(item)
 
@@ -199,7 +196,9 @@ class Player:
             ),
         )
 
-    def draw(self, camera: Camera, uicamera: Camera) -> None:
+        self.weapon.update(window=window)
+
+    def draw(self, camera: Camera, ui_camera: Camera) -> None:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
         offset = Vec2(PIXEL_SIZE, PIXEL_SIZE) / 2
@@ -212,6 +211,10 @@ class Player:
         surface.blit(image, offset)
 
         weapon = self.weapon.get_weapon_as_surface()
+        weapon = pygame.transform.scale(
+            weapon,
+            (weapon.get_width() * 4, weapon.get_height() * 4),
+        )
         weapon = pygame.transform.rotate(weapon, -self.weapon_rotation)
 
         surface.blit(weapon, offset + (0, 4))
@@ -224,17 +227,18 @@ class Player:
                 self.position[1] * PIXEL_SIZE,
             ),
         )
-        hp_img = pygame.image.load("res/helth.png")
-        no_hp_img = pygame.image.load("res/nohelth.png")
+
         # if self.hp == 10:
         # max_hp = self.hp
-        set_y_hp = -160
         for i in range(self.max_hp):
-            hp_y = set_y_hp + hp_img.get_height() * i
+            hp_x = -(ui_camera.viewport.get_width() / 2) + 30
+            hp_y = -(ui_camera.viewport.height / 2) + hp_img.get_height() * i + 30
             if i + 1 <= self.hp:
-                uicamera.blit(hp_img, offset=(-320, hp_y))
+                ui_camera.blit(hp_img, offset=(hp_x, hp_y))
             else:
-                uicamera.blit(no_hp_img, offset=(-320, hp_y))
+                ui_camera.blit(no_hp_img, offset=(hp_x, hp_y))
+
+        self.weapon.draw(camera=ui_camera)
 
     def get_state(self):
         if self.is_able_to_jump == False:

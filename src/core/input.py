@@ -1,10 +1,10 @@
 from typing import Dict, Tuple
 import pygame
 
-pygame.K_0
 
 def clamp_value(x, l, h):
     return min(max(x, l), h)
+
 
 class Input:
     def __init__(self) -> None:

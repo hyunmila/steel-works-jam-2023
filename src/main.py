@@ -11,7 +11,7 @@ from components.text_box import TextBox
 from components.map import Map, Tile
 
 from item import Item, ItemType
-from weapon import Weapon
+from components.weapon import Weapon
 import enemy, time
 
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
@@ -26,22 +26,11 @@ input.add_action_key(action="left", key=pygame.K_LEFT, scale=-1)
 input.add_action_key(action="jump", key=pygame.K_SPACE)
 input.add_action_key(action="jump", key=pygame.K_w)
 input.add_action_key(action="jump", key=pygame.K_UP)
+input.add_action_key(action="inventory", key=pygame.K_i)
 
-# main low-resolution viewport for the game world
-viewport = Viewport(window=window, height=180)
+viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
-# TODO: Up-scaling from lower resolution is not an optimal idea.
-# For optimal quality, we should always draw at native resolution.
-# Example drawback: gaps between tiles.
-
-# higher resolution UI viewport for the UI elements
-ui_viewport = Viewport(window=window, height=360)
-ui_camera = Camera(viewport=ui_viewport)
-
-# Weapon menu viewport
-weapon_viewport = Viewport(window=window, height=720)
-weapon_camera = Camera(viewport=weapon_viewport)
-
+ui_camera = Camera(viewport=viewport)
 
 turbokserokopiarka = Item(
     name="turbokserokopiarka",
@@ -73,7 +62,7 @@ map = Map(
         ),
         Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres),
     },
-    tile_size=16,
+    tile_size=64,
 )
 map.load_from_file("res/test-map.png")
 
@@ -84,7 +73,7 @@ player.position = Vector2(5, 5)
 # UI text
 text_box = TextBox(
     font_path="res/uwu-font.ttf",
-    font_size=8,
+    font_size=16,
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
@@ -96,7 +85,7 @@ text_box.set_text(
 # text in 3D space
 spatial_text_box = TextBox(
     font_path="res/uwu-font.ttf",
-    font_size=8,
+    font_size=32,
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
@@ -163,25 +152,17 @@ enemy.add_enemy(
 # main game loop
 while window.is_open():
     window.process_events()
-    # print(os.environ.get('NAP_GAME_MODE_SELECT_69'))
+
     if input.is_action_just_pressed(action="debug-delta"):
         print(f"delta = {window.get_delta()}")
 
     player.update(window=window)
-    text_box.offset = (-ui_viewport.get_width() / 5, -ui_viewport.height / 2)
-    # text_box.offset = (0,0)
+    text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
+
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
-    player.draw(camera=camera, uicamera=ui_camera)
+    enemy.update_all(player.position, camera, window.get_delta())
+    player.draw(camera=camera, ui_camera=ui_camera)
     text_box.draw(camera=ui_camera)
-
-    if input.is_action_just_pressed(action="debug-delta"):
-        flag = not flag
-
-    if flag:
-        weapon_camera.blit(
-            player.weapon.process(Vector2(input.get_mouse_pos())),
-            (-weapon_viewport.get_width() / 2, -weapon_viewport.height / 2),
-        )
 
     window.swap_buffers()

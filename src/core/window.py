@@ -18,6 +18,7 @@ class Window:
         self._clock = pygame.time.Clock()
         self.frame_rate = frame_rate
         self._delta: float = 0
+        self.time_scale = 1
 
     # Offset is in pixels.
     def blit(self, surface: pygame.Surface, offset: Tuple[int, int] = (0, 0)) -> None:
@@ -37,7 +38,7 @@ class Window:
         return self._input
 
     def get_delta(self) -> float:
-        return self._delta
+        return self._delta * self.time_scale
 
     def process_events(self) -> None:
         self._delta = self._clock.tick(self.frame_rate) / 1000
