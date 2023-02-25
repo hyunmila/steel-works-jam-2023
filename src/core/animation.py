@@ -30,7 +30,6 @@ class Animation:
         self._frame = frame % self._frame_count
 
     def get_frame(self) -> pygame.Surface:
-        print(self._frame)
         frame_width = self.sheet.get_width() // self.cols
         frame_height = self.sheet.get_height() // self.rows
 

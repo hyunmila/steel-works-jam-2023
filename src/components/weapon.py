@@ -10,7 +10,7 @@ from core.camera import Camera
 from core.window import Window
 
 
-class Weapon:
+class WeaponManager:
     GRID_WIDTH = 16
     GRID_HEIGHT = 8
     GRID = [[None for _ in range(8)] for _ in range(16)]
@@ -192,10 +192,10 @@ class Weapon:
         for x in range(step, grid_width, step):
             for y in range(step, grid_height, step):
                 pygame.draw.line(
-                    grid_surface, BORDER_COLOR, (x, 0), (x, grid_height), width=1
+                    grid_surface, BORDER_COLOR, (x, 0), (x, grid_height), width=3
                 )
                 pygame.draw.line(
-                    grid_surface, BORDER_COLOR, (0, y), (grid_width, y), width=1
+                    grid_surface, BORDER_COLOR, (0, y), (grid_width, y), width=3
                 )
 
         item_surface = pygame.Surface((grid_width, 2 * step), pygame.SRCALPHA, 32)
@@ -238,9 +238,9 @@ class Weapon:
 
         for x in range(step, grid_width, step):
             for y in range(step, 2 * step, step):
-                pygame.draw.line(item_surface, BORDER_COLOR, (x, 0), (x, step), width=1)
+                pygame.draw.line(item_surface, BORDER_COLOR, (x, 0), (x, step), width=3)
                 pygame.draw.line(
-                    item_surface, BORDER_COLOR, (0, y), (grid_width, y), width=1
+                    item_surface, BORDER_COLOR, (0, y), (grid_width, y), width=3
                 )
 
         weapon_surface = self.get_weapon_as_surface()

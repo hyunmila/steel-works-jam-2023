@@ -18,7 +18,6 @@ class Input:
         if not action in self._actions:
             self._actions[action] = dict()
 
-        print(f"Added {action}")
         self._actions[action][key] = scale
 
     def clear_actions(self) -> None:
@@ -82,8 +81,6 @@ class Input:
             self._pressed_keys.add(key)
         else:
             self._pressed_keys.remove(key)
-
-        print(f"Pressed keys: {self._pressed_keys}")
 
     def _integrate_updates(self) -> None:
         # Find keys that were just pressed or released

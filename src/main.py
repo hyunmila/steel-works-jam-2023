@@ -11,7 +11,7 @@ from components.text_box import TextBox
 from components.map import Map, Tile
 
 from item import Item, ItemType
-from components.weapon import Weapon
+from components.weapon import WeaponManager
 import enemy, time
 
 from components.bullet import BulletManager
@@ -20,7 +20,6 @@ window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
 # input mappings for easier scripting
 input = window.get_input()
-input.add_action_key(action="debug-delta", key=pygame.K_p)
 input.add_action_key(action="right", key=pygame.K_d, scale=1)
 input.add_action_key(action="left", key=pygame.K_a, scale=-1)
 input.add_action_key(action="right", key=pygame.K_RIGHT, scale=1)
@@ -30,6 +29,10 @@ input.add_action_key(action="jump", key=pygame.K_w)
 input.add_action_key(action="jump", key=pygame.K_UP)
 input.add_action_key(action="inventory", key=pygame.K_i)
 input.add_action_key(action="fire", key=1)  # left mouse button
+input.add_action_key(action="dialog-confirm", key=pygame.K_SPACE)
+input.add_action_key(action="dialog-confirm", key=pygame.K_RETURN)
+input.add_action_key(action="dialog-confirm", key=pygame.K_KP_ENTER)
+input.add_action_key(action="dialog-confirm", key=pygame.K_ESCAPE)
 
 viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
@@ -69,10 +72,16 @@ map = Map(
 )
 map.load_from_file("res/test-map.png")
 
+weapon_manager = WeaponManager()
 bullet_manager = BulletManager(collision_map=map)
 
 # player controller with camera following
-player = Player(follow_camera=camera, collision_map=map, bullet_manager=bullet_manager)
+player = Player(
+    follow_camera=camera,
+    collision_map=map,
+    weapon_manager=weapon_manager,
+    bullet_manager=bullet_manager,
+)
 player.position = Vector2(5, 5)
 
 # UI text
@@ -157,9 +166,7 @@ enemy.add_enemy(
 while window.is_open():
     window.process_events()
 
-    if input.is_action_just_pressed(action="debug-delta"):
-        print(f"delta = {window.get_delta()}")
-
+    weapon_manager.update(window=window)
     player.update(window=window)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
     bullet_manager.update(window=window)
@@ -169,6 +176,7 @@ while window.is_open():
     enemy.update_all(player.position, camera, window.get_delta())
     player.draw(camera=camera, ui_camera=ui_camera)
     bullet_manager.draw(camera=camera)
+    weapon_manager.draw(camera=ui_camera)
     text_box.draw(camera=ui_camera)
 
     window.swap_buffers()

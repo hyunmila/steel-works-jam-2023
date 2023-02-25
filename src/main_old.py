@@ -4,7 +4,7 @@ from color import Color
 from components.map import BBox, MapEngine, Tile
 from components.player import Player
 from components.text_box import TextBox
-from components.weapon import Weapon
+from components.weapon import WeaponManager
 from item import Item, ItemType
 
 pygame.init()
@@ -41,7 +41,7 @@ text_box.set_text(
 )
 
 # igor's item system
-weapon = Weapon()
+weapon = WeaponManager()
 
 item = Item(
     name="dupa",

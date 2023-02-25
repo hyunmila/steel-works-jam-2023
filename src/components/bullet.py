@@ -10,12 +10,11 @@ from core.math import BBox
 from core.animation import Animation
 
 
-SPRITE_SIZE = 64
 BULLET_SPEED = 5
 PIXELS_IN_UNIT = 64
 
 BULLET_IMG = pygame.image.load("res/bullet.png")
-BULLET_IMG = pygame.transform.scale(BULLET_IMG, (SPRITE_SIZE * 6, SPRITE_SIZE))
+BULLET_IMG = pygame.transform.scale(BULLET_IMG, (64 * 6, 64))
 bullet_anim = Animation(BULLET_IMG, 6, frame_rate=8)
 
 

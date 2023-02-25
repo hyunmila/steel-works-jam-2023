@@ -3,6 +3,7 @@ import pygame
 from core.camera import Camera
 
 
+# Enables rendering of multiline text.
 class TextBox:
     def __init__(
         self,
