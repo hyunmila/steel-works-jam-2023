@@ -36,7 +36,7 @@ input.add_action_key(action="inventory", key=pygame.K_i)
 viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
 
-main_song = Sound("res/main.wav", loop=True, volume=0.2)
+main_song = Sound("res/main.wav", loop=True, volume=0.4)
 main_song.play()
 
 beam_sound = Sound("res/beam.mp3")

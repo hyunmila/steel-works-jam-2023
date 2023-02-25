@@ -106,8 +106,9 @@ class Player:
                 self.t_stop = perf_counter()
                 if (self.t_stop - self.t_start) <= 0.3:
                     factor = (self.t_stop - self.t_start)*3
-
-                    acceleration.y = -30*(3.5-factor)
+                    self.velocity.y = -13
+                    #print(self.velocity)
+                    # acceleration.y = -30*(3.5-factor)
                 else:
                     self.is_jumping = False
                     self.is_able_to_jump = False
