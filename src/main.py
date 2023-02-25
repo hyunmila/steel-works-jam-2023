@@ -145,7 +145,7 @@ spatial_text_box.offset = (100, 100)
 
 flag = False
 enemy.add_enemy("warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20,20), collision_map = map)
-enemy.add_enemy("sorcerer", "res/wojownik-atakuje.png", Vec2(1, 1), 5, Vec2(20,20), collision_map = map)
+enemy.add_enemy("sorcerer", "res/wojownik-atakuje.png", Vec2(3, 3), 5, Vec2(20,20), collision_map = map)
 
 # main game loop
 while window.is_open():
