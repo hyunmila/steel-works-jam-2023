@@ -1,124 +1,108 @@
 import pygame
-from pygame.math import Vector2 as Vec2
-from colors import Color
-from map_engine import BBox, MapEngine, Tile
-from player import Player
-from src.weapon import Weapon
-from src.item import Item, ItemType
+from pygame import Vector2
+from core.viewport import Viewport
+from core.window import Window
+from core.camera import Camera
+from core.color import Color
+from components.player import Player
+from components.text_box import TextBox
+from components.map import Map, Tile
 
-pygame.init()
+from item import Item, ItemType
+from weapon import Weapon
 
-WIDTH, HEIGHT = 1280, 720
-CENTER = pygame.math.Vector2(300, 300)
-__screen = pygame.display.set_mode([WIDTH, HEIGHT], pygame.RESIZABLE)
-screen = __screen.copy()
+window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
-pygame.display.set_caption("SteelWorksJam 2023")
+# input mappings for easier scripting
+input = window.get_input()
+input.add_action_key(action="debug-delta", key=pygame.K_p)
+input.add_action_key(action="right", key=pygame.K_d, scale=1)
+input.add_action_key(action="right", key=pygame.K_a, scale=-1)
+input.add_action_key(action="right", key=pygame.K_RIGHT, scale=1)
+input.add_action_key(action="right", key=pygame.K_LEFT, scale=-1)
+input.add_action_key(action="jump", key=pygame.K_SPACE)
+input.add_action_key(action="jump", key=pygame.K_w)
+input.add_action_key(action="jump", key=pygame.K_UP)
 
-running = True
+# main low-resolution viewport for the game world
+viewport = Viewport(window=window, height=180)
+camera = Camera(viewport=viewport)
+# TODO: Up-scaling from lower resolution is not an optimal idea.
+# For optimal quality, we should always draw at native resolution.
+# Example drawback: gaps between tiles.
 
-screen.fill(Color.BLACK)
-clock = pygame.time.Clock()
-dt = clock.tick(60)
-ticks = 0
+# higher resolution UI viewport for the UI elements
+ui_viewport = Viewport(window=window, height=360)
+ui_camera = Camera(viewport=ui_viewport)
 
-map_engine = MapEngine(
+# game map
+map = Map(
     tiles={
         Color.WHITE: Tile("", False),
         Color.BLACK: Tile("res/metalowa-podłoga-2.png", True),
     },
-    tile_size=64,
+    tile_size=16,
+)
+map.load_from_file("res/test-map.png")
+
+# player controller with camera following
+player = Player(follow_camera=camera, collision_map=map)
+player.position = Vector2(5, 5)
+
+# UI text
+text_box = TextBox(
+    font_path="res/uwu-font.ttf",
+    font_size=8,
+    font_color=Color.WHITE,
+    line_height_factor=1.5,
+)
+text_box.set_text(
+    "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
 )
 
-map_engine.load_from_file("res/test-map.png")
-
-player_pos = Vec2(0, 0)
-player_speed = Vec2(0, 0)
-
-# mila's player
-player = Player()
-
-# text display
-text = "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
-fontcolor = COLOR.BLUE
-textdisplay = TextDisplay(text, fontcolor, fontsize=16)
-textposition = (100, 100)
-# print(textdisplay.img.get_width()/2, textdisplay.img.get_height()/2) # fontsize 16x16 idealne kwadraty uwu
-
-# igor's item system
-weapon = Weapon()
-
-item = Item(
-    name="dupa",
-    item_type=ItemType.GUN,
-    weight=69.0,
-    shape=(2, 3),
-    ammo_type="dupa2",
-    img=pygame.image.load("res/test.png"),
+# text in 3D space
+spatial_text_box = TextBox(
+    font_path="res/uwu-font.ttf",
+    font_size=8,
+    font_color=Color.WHITE,
+    line_height_factor=1.5,
 )
+spatial_text_box.set_text("tekst w przestrzeni")
+spatial_text_box.offset = (100, 100)
 
-weapon.add_item(item)
+# # TESTING: igor's item system
+# weapon = Weapon()
 
-while running:
-    screen.fill(Color.BLACK)
-    dt = clock.tick(60)
-    ticks += dt
+# item = Item(
+#     name="dupa",
+#     item_type=ItemType.GUN,
+#     weight=69.0,
+#     shape=(2, 3),
+#     ammo_type="dupa2",
+#     img=pygame.image.load("res/test.png"),
+# )
 
-    scale_width = __screen.get_width() / screen.get_width()
-    scale_height = __screen.get_height() / screen.get_height()
-    relative_mouse = Vec2(pygame.mouse.get_pos())
-    relative_mouse.x /= scale_width
-    relative_mouse.y /= scale_height
+# weapon.add_item(item)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
 
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_SPACE:
-                player_speed.y = -5
+# main game loop
+while window.is_open():
+    window.process_events()
 
-    pressed_keys = pygame.key.get_pressed()
+    if input.is_action_just_pressed(action="debug-delta"):
+        print(f"delta = {window.get_delta()}")
 
-    pygame.draw.circle(screen, Color.WHITE, Vec2(200, 200), 50)
+    player.update(window=window)
+    text_box.offset = (-ui_viewport.get_width() / 2, -ui_viewport.height / 2)
 
-    if pressed_keys[pygame.K_w]:
-        print(f"dt = {dt}")
+    spatial_text_box.draw(camera=camera)
+    map.draw(camera=camera)
+    player.draw(camera=camera)
+    text_box.draw(camera=ui_camera)
 
-    player_speed.x = int(pressed_keys[pygame.K_d]) - int(pressed_keys[pygame.K_a])
-    player_speed.x *= 5
+    # ui_camera.blit(
+    #     weapon.process(Vector2(input.get_mouse_pos())),
+    #     (-ui_viewport.get_width() / 2, -ui_viewport.height / 2),
+    # )
 
-    player_pos[0] += player_speed.x * (dt / 1000)
-    player_pos[1] += player_speed.y * (dt / 1000)
-    if map_engine.rect_collision(bbox=BBox(player_pos.x, player_pos.y, 1, 1)):
-        player_pos[0] -= player_speed.x * (dt / 1000)
-        player_pos[1] -= player_speed.y * (dt / 1000)
-        player_speed.x = 0
-        player_speed.y = 0
-
-    player_speed.y += 9.81 * (dt / 1000)
-
-    # epicki gracz Mili
-    player.update(pressed_keys, dt)
-    pygame.draw.circle(screen, COLOR.WHITE, player.position, 50)
-
-    # Rendering
-    screen.blit(weapon.process(relative_mouse), (0, 0))
-    screen.blit(textdisplay.img, textposition)  # text display
-    map_engine.draw(screen=screen, offset=(0, 0))
-    pygame.draw.polygon(
-        screen,
-        (255, 0, 0),
-        (
-            (64 * player_pos[0], 64 * player_pos[1]),
-            (64 * (player_pos[0] + 1), 64 * player_pos[1]),
-            (64 * (player_pos[0] + 1), 64 * (player_pos[1] + 1)),
-            (64 * player_pos[0], 64 * (player_pos[1] + 1)),
-        ),
-    )
-
-    __scaled = pygame.transform.scale(
-        screen, (__screen.get_width(), __screen.get_height())
-    )
-    __screen.blit(__scaled, (0, 0))
-    pygame.display.flip()
+    window.swap_buffers()

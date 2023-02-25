@@ -2,7 +2,7 @@ import pygame
 import random
 from math import sqrt
 from pygame.math import Vector2 as Vec2
-from colors import COLOR
+from core.color import Color
 import abc
 import time
 
@@ -19,7 +19,7 @@ pygame.display.set_caption("SteelWorksJam 2023")
 
 running = True
 
-screen.fill(COLOR.BLACK)
+screen.fill(Color.BLACK)
 clock = pygame.time.Clock()
 dt = clock.tick(60)
 ticks = 0
@@ -200,7 +200,7 @@ def enemy_collision(enemies: list[Enemy]):
                 # enemies[i].setPosY(random.random())
 
 
-player = pygame.image.load("graphics/snail1.png")
+player = pygame.image.load("res/snail-1.png")
 player_rec = player.get_rect(center=Vec2(100, 100))
 
 enemy1 = Warrior("res/fly-1.png", CENTER, 200, 4)
@@ -214,7 +214,7 @@ enemies = [
 ]
 
 while running:
-    screen.fill(COLOR.BLACK)
+    screen.fill(Color.BLACK)
     dt = clock.tick(60)
     ticks += dt
 
@@ -224,7 +224,7 @@ while running:
 
     pressed_keys = pygame.key.get_pressed()
 
-    # pygame.draw.circle(screen, COLOR.WHITE, CENTER, 20)
+    # pygame.draw.circle(screen, Color.WHITE, CENTER, 20)
     screen.blit(player, player_rec)
 
     if pressed_keys[pygame.K_w]:
