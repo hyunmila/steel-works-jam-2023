@@ -6,10 +6,9 @@ from core.color import Color
 import abc
 from core.camera import Camera
 from components.map import Map
-from core.math import BBox
+from core.math import BBox, lerp
+from typing import List
 
-
-pygame.init()
 
 class Box:
     def __init__(self, pos, size):
@@ -31,15 +30,15 @@ class Box:
     # def move(self, dt):
     #     self.pos += self.velocity * dt
 
-def lerp(a, b, t):
-    return a + (b-a)*t
 
+PIXEL_SIZE = 64
 
-PIXEL_SIZE = 16
 
 class Enemy(metaclass=abc.ABCMeta):
-    def __init__(self, path, pos : Vec2, dist, vel : Vec2, collision_map : Map):
+    def __init__(self, path, pos: Vec2, dist, vel: Vec2, collision_map: Map):
         self.image = pygame.image.load(path)
+        self.image = pygame.transform.scale(self.image, (PIXEL_SIZE, PIXEL_SIZE))
+        # self.rect = self.image.get_rect(center=(pos[0] * PIXEL_SIZE, pos[1] * PIXEL_SIZE))
         self.rect = pos
         self.gravity = 0
         self.vel = vel
@@ -82,9 +81,9 @@ class Enemy(metaclass=abc.ABCMeta):
             self.rect.x = old_position.x
 
     # to update all status about enemy
-    def update(self, player_pos, camera : Camera, dt):
+    def update(self, player_pos, camera: Camera, dt):
         pass
-    
+
     def range_attack(self):
         pass
 
@@ -107,17 +106,17 @@ class Warrior(Enemy):
         self.strong_attack = False
         # self.cooldown = cooldown
 
-
-    def update(self, player_pos, camera : Camera, dt):
+    def update(self, player_pos, camera: Camera, dt):
         f = 0.2
         old_vel = self.vel
 
         if 0.7 < self.activate(player_pos) < self.dist:
             self.move(player_pos, dt)
 
-
         # self.ability(5)
-        self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
+        self.draw(
+            camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE)
+        )
         self.vel = old_vel
 
 class Bullet:
@@ -125,7 +124,7 @@ class Bullet:
         self.vel = vel
         self.image = pygame.image.load(path).convert_alpha()
         self.position = position
-        self.direction = direction # Vector2 like [0,-1] - normalized
+        self.direction = direction  # Vector2 like [0,-1] - normalized
         self.collision_map = collision_map
         
 
@@ -205,7 +204,8 @@ class Sorcerer(Enemy):
 enemies = []
 enum = {'warrior' : Warrior, 'sorcerer': Sorcerer}
 
-def enemy_collision(enemies: list[Enemy]):
+
+def enemy_collision(enemies: List[Enemy]):
     n = len(enemies)
     dt = 10
     for _ in range(3):
@@ -223,7 +223,6 @@ def enemy_collision(enemies: list[Enemy]):
 
                 box1 = Box(enemies[i].rect * PIXEL_SIZE, Vec2(PIXEL_SIZE, PIXEL_SIZE))
                 box2 = Box(enemies[j].rect * PIXEL_SIZE, Vec2(PIXEL_SIZE, PIXEL_SIZE))
-
 
                 # rect1 = enemies[i].getRect()
                 # rect2 = enemies[j].getRect()
@@ -263,7 +262,6 @@ def enemy_collision(enemies: list[Enemy]):
                 #     if box1.pos.y > box2.pos.y: y *= -1
                 #     box1.pos.y -= y
                 #     box2.pos.y += y
-                
 
                 enemies[j].setPosX(random.random())
                 enemies[j].setPosY(random.random())
@@ -271,13 +269,17 @@ def enemy_collision(enemies: list[Enemy]):
                 # enemies[i].setPosX(random.random())
                 # enemies[i].setPosY(random.random())
 
-def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
 
+def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
     if type_of_enemy is "warrior":
-        enemies.append(enum["warrior"](path, position, distance, vel_of_chase, collision_map))
+        enemies.append(
+            enum["warrior"](path, position, distance, vel_of_chase, collision_map)
+        )
 
     if type_of_enemy is "sorcerer":
-        enemies.append(enum['sorcerer'](path, position, distance, vel_of_chase, collision_map))
+        enemies.append(
+            enum["sorcerer"](path, position, distance, vel_of_chase, collision_map)
+        )
 
 
 def update_all(player_pos, camera, timer):

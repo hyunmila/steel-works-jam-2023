@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 # from typing_extensions import Self
 import pygame
 import math
@@ -8,8 +8,14 @@ from core.camera import Camera
 from core.math import BBox
 from copy import deepcopy
 from dataclasses import replace
+
+from core.color import Color
+
+
 class Tile:
-    def __init__(self, img_path: str, collision: bool, item: Optional[Item] = None) -> None:
+    def __init__(
+        self, img_path: str, collision: bool, item: Optional[Item] = None
+    ) -> None:
         self.img_path = img_path
         try:
             self.img = pygame.image.load(img_path)
@@ -26,12 +32,14 @@ class Tile:
         return Tile(
             img_path=self.img_path,
             collision=self.collision,
-            item=replace(self.item, img=self.item.img.copy()) if self.item is not None else None
+            item=replace(self.item, img=self.item.img.copy())
+            if self.item is not None
+            else None,
         )
 
 
 class Map:
-    def __init__(self, tiles: dict, tile_size: int = 16) -> None:
+    def __init__(self, tiles: dict, tile_size: int) -> None:
         self._tiles = tiles
         self._tile_size = tile_size
         self._map_size = (0, 0)
@@ -56,7 +64,7 @@ class Map:
                         f"Color {color} at pixel ({x}, {y}) is not a valid tile."
                     )
 
-                tile = self._tiles[color].copy()
+                tile = self._tiles[color]  # This must not be copied.
                 self._map.append(tile)
 
     def get_tile_size(self) -> int:
@@ -79,6 +87,7 @@ class Map:
                         tile.img,
                         (x * self._tile_size, y * self._tile_size),
                     )
+
     def rect_collision(self, bbox: BBox) -> bool:
         for x in range(math.floor(bbox.x), math.floor(bbox.x + bbox.w) + 1):
             for y in range(math.floor(bbox.y), math.floor(bbox.y + bbox.h) + 1):
@@ -90,8 +99,10 @@ class Map:
                     return True
 
         return False
-    
-    def take_usable_collision(self, bbox: BBox) -> Optional[Item]:
+
+    def take_usable_collision(
+        self, bbox: BBox, replacement_color: Tuple[int, int, int] = Color.WHITE
+    ) -> Optional[Item]:
         for x in range(math.floor(bbox.x), math.floor(bbox.x + bbox.w) + 1):
             for y in range(math.floor(bbox.y), math.floor(bbox.y + bbox.h) + 1):
                 if x < 0 or y < 0 or x >= self._map_size[0] or y >= self._map_size[1]:
@@ -100,8 +111,9 @@ class Map:
                 tile = self._map[x * self._map_size[1] + y]
                 if tile.item is not None:
                     item = tile.item
-                    tile.item = None
-                    tile.img = None
+                    self._map[x * self._map_size[1] + y] = self._tiles[
+                        replacement_color
+                    ]
                     return item
 
         return None

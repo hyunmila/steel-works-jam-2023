@@ -1,5 +1,6 @@
 from typing import Tuple
 import pygame
+import os 
 
 from core.color import Color
 from core.input import Input
@@ -8,6 +9,7 @@ from core.input import Input
 # Window handles pygame IO.
 class Window:
     def __init__(self, title: str, size: Tuple[int, int], frame_rate: int = 60) -> None:
+        os.environ['SDL_VIDEO_CENTERED'] = '1' # centers the main window after the menu DO NOT DELETE PLS otherwise it won't work on Windows :(
         pygame.init()
         pygame.display.set_caption(title)
 
@@ -18,6 +20,7 @@ class Window:
         self._clock = pygame.time.Clock()
         self.frame_rate = frame_rate
         self._delta: float = 0
+        self.time_scale = 1
 
     # Offset is in pixels.
     def blit(self, surface: pygame.Surface, offset: Tuple[int, int] = (0, 0)) -> None:
@@ -37,7 +40,7 @@ class Window:
         return self._input
 
     def get_delta(self) -> float:
-        return self._delta
+        return self._delta * self.time_scale
 
     def process_events(self) -> None:
         self._delta = self._clock.tick(self.frame_rate) / 1000
