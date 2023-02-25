@@ -35,6 +35,10 @@ camera = Camera(viewport=viewport)
 ui_viewport = Viewport(window=window, height=360)
 ui_camera = Camera(viewport=ui_viewport)
 
+# Weapon menu viewport
+weapon_viewport = Viewport(window=window, height=720)
+weapon_camera = Camera(viewport=weapon_viewport)
+
 # game map
 map = Map(
     tiles={
@@ -71,18 +75,44 @@ spatial_text_box.set_text("tekst w przestrzeni")
 spatial_text_box.offset = (100, 100)
 
 # # TESTING: igor's item system
-# weapon = Weapon()
+weapon = Weapon()
 
-# item = Item(
-#     name="dupa",
-#     item_type=ItemType.GUN,
-#     weight=69.0,
-#     shape=(2, 3),
-#     ammo_type="dupa2",
-#     img=pygame.image.load("res/test.png"),
-# )
+item = Item(
+    name="dupa",
+    item_type=ItemType.GUN,
+    weight=69.0,
+    shape=(2, 3),
+    ammo_type="dupa2",
+    img=pygame.image.load("res/test.png"),
+    color=Color.RED
+)
 
-# weapon.add_item(item)
+item2 = Item(
+    name='dupa2',
+    item_type=ItemType.AMMO,
+    weight=42.0,
+    shape=(4,1),
+    ammo_type="",
+    img=pygame.image.load("res/jola.png"),
+    color=Color.GREEN
+)
+
+item3 = Item(
+    name='dupa3',
+    item_type=ItemType.CONNECT,
+    weight=45.0,
+    shape=(2,1),
+    ammo_type="",
+    img=pygame.image.load("res/wojownik-atakuje.png"),
+    color=Color.BLUE
+)
+
+weapon.add_item(item)
+
+for _ in range(2):
+    weapon.add_item(item2)
+for _ in range(4):
+    weapon.add_item(item3)
 
 
 # main game loop
@@ -100,9 +130,10 @@ while window.is_open():
     player.draw(camera=camera)
     text_box.draw(camera=ui_camera)
 
-    # ui_camera.blit(
-    #     weapon.process(Vector2(input.get_mouse_pos())),
-    #     (-ui_viewport.get_width() / 2, -ui_viewport.height / 2),
-    # )
+    # if input.is_action_pressed(action="debug-delta"):
+    weapon_camera.blit(
+        weapon.process(Vector2(input.get_mouse_pos())),
+        (-weapon_viewport.get_width() / 2, -weapon_viewport.height / 2),
+    )
 
     window.swap_buffers()
