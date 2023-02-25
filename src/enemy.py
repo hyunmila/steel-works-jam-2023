@@ -338,12 +338,12 @@ def enemy_collision(enemies: List[Enemy]):
 
 
 def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
-    if type_of_enemy is "warrior":
+    if type_of_enemy == "warrior":
         enemies.append(
             enum["warrior"](path, position, distance, vel_of_chase, collision_map)
         )
 
-    if type_of_enemy is "sorcerer":
+    if type_of_enemy == "sorcerer":
         enemies.append(
             enum["sorcerer"](path, position, distance, vel_of_chase, collision_map)
         )

@@ -16,14 +16,16 @@ from components.text_box import TextBox
 from components.map import Map, Tile
 
 from item import Item, ItemType
-from components.weapon import Weapon
+from components.weapon import WeaponManager
 import enemy, time
+
+from components.bullet import BulletManager
+from components.dialog_box import DialogBox
 
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
 # input mappings for easier scripting
 input = window.get_input()
-input.add_action_key(action="debug-delta", key=pygame.K_p)
 input.add_action_key(action="right", key=pygame.K_d, scale=1)
 input.add_action_key(action="left", key=pygame.K_a, scale=-1)
 input.add_action_key(action="right", key=pygame.K_RIGHT, scale=1)
@@ -32,6 +34,7 @@ input.add_action_key(action="jump", key=pygame.K_SPACE)
 input.add_action_key(action="jump", key=pygame.K_w)
 input.add_action_key(action="jump", key=pygame.K_UP)
 input.add_action_key(action="inventory", key=pygame.K_i)
+input.add_action_key(action="fire", key=1)  # left mouse button
 
 viewport = Viewport(window=window, height=720)
 camera = Camera(viewport=viewport)
@@ -78,8 +81,27 @@ map = Map(
 )
 map.load_from_file("res/test-map.png")
 
+dialog_box = DialogBox(typing_delay=0.05)
+dialog_box.show(
+    [
+        "Witaj w NAP Game!",
+        "To jest testowy dialog.\nW dwóch liniach! UwU",
+        "Zobaczysz go tylko raz!",
+    ]
+)
+# TODO: introduction message for the player
+
+weapon_manager = WeaponManager()
+bullet_manager = BulletManager(collision_map=map)
+
 # player controller with camera following
-player = Player(follow_camera=camera, collision_map=map)
+player = Player(
+    follow_camera=camera,
+    collision_map=map,
+    weapon_manager=weapon_manager,
+    bullet_manager=bullet_manager,
+    dialog_box=dialog_box,
+)
 player.position = Vector2(5, 5)
 
 # UI text
@@ -169,13 +191,19 @@ while window.is_open():
         player.weapon.visible = not player.weapon.visible
         duct_tape_sound.play()
 
+    weapon_manager.update(window=window)
     player.update(window=window)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
+    bullet_manager.update(window=window)
+    dialog_box.update(window=window)
 
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
     enemy.update_all(player.position, camera, window.get_delta())
     player.draw(camera=camera, ui_camera=ui_camera)
+    bullet_manager.draw(camera=camera)
+    weapon_manager.draw(camera=ui_camera)
     text_box.draw(camera=ui_camera)
+    dialog_box.draw(camera=ui_camera)
 
     window.swap_buffers()

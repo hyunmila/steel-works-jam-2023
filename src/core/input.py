@@ -18,7 +18,6 @@ class Input:
         if not action in self._actions:
             self._actions[action] = dict()
 
-        print(f"Added {action}")
         self._actions[action][key] = scale
 
     def clear_actions(self) -> None:
@@ -72,6 +71,15 @@ class Input:
                 return True
 
         return False
+
+    def is_any_key_pressed(self) -> bool:
+        return len(self._pressed_keys) > 0
+
+    def is_any_key_just_pressed(self) -> bool:
+        return len(self._just_pressed_keys) > 0
+
+    def is_any_key_just_released(self) -> bool:
+        return len(self._just_released_keys) > 0
 
     # Retrieves current mouse position.
     def get_mouse_pos(self) -> Tuple[int, int]:

@@ -7,12 +7,14 @@ import core.math
 from core.math import BBox, lerp
 from core.window import Window
 from core.camera import Camera
-from components.weapon import Weapon
+from components.weapon import WeaponManager
 from math import atan2, pi
 from core.music import Sound
 from numpy import sign
 
 from components.map import Map
+from components.bullet import BulletManager
+from components.dialog_box import DialogBox
 
 PIXEL_SIZE = 64
 
@@ -23,7 +25,14 @@ no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
 
 
 class Player:
-    def __init__(self, follow_camera: Camera, collision_map: Map) -> None:
+    def __init__(
+        self,
+        follow_camera: Camera,
+        collision_map: Map,
+        weapon_manager: WeaponManager,
+        bullet_manager: BulletManager,
+        dialog_box: DialogBox,
+    ) -> None:
         self.inertia = 1.0
         self.position = Vec2(0.0, 0.0)
         self.velocity = Vec2(0.0, 0.0)
@@ -31,7 +40,7 @@ class Player:
         self.t_stop = perf_counter()
         self.is_jumping = False
         self.is_able_to_jump = False
-        self.weapon = Weapon()
+        self.weapon = weapon_manager
 
         self.follow_camera = follow_camera
         self.collision_map = collision_map
@@ -68,6 +77,8 @@ class Player:
         self.pickup_sound = Sound("res/pickup.mp3")
 
         self.weapon_rotation = 0
+        self.bullet_manager = bullet_manager
+        self.dialog_box = dialog_box
 
     def rotate_weapon(self, window: Window):
         mouse_pos = Vec2(window.get_input().get_mouse_pos())
@@ -92,9 +103,10 @@ class Player:
 
         acceleration = Vec2(0.0, 30)
 
-        if window.get_input().is_action_pressed("right"):
-            # if pressed_keys[pygame.K_d]:
-            acceleration.x += x_val
+        if not self.dialog_box.is_shown():
+            if window.get_input().is_action_pressed("right"):
+                # if pressed_keys[pygame.K_d]:
+                acceleration.x += x_val
 
         if window.get_input().is_action_pressed("jump"):
             # if pressed_keys[pygame.K_w]:
@@ -115,9 +127,14 @@ class Player:
         else:
             self.is_jumping = False
 
-        if window.get_input().is_action_pressed("left"):
-            # if pressed_keys[pygame.K_a]:
-            acceleration.x -= x_val
+            if window.get_input().is_action_pressed("left"):
+                # if pressed_keys[pygame.K_a]:
+                acceleration.x -= x_val
+
+            if window.get_input().is_action_just_pressed("fire"):
+                dir = Vec2(1, 0).rotate(self.weapon_rotation)
+                pos = self.position + dir * 0.5
+                self.bullet_manager.add_bullet(position=pos, direction=dir)
 
         # print(acceleration)
         if self.is_jumping == False and self.is_able_to_jump == False:
@@ -220,8 +237,6 @@ class Player:
             ),
         )
 
-        self.weapon.update(window=window)
-
     def draw(self, camera: Camera, ui_camera: Camera) -> None:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
@@ -261,8 +276,6 @@ class Player:
                 ui_camera.blit(hp_img, offset=(hp_x, hp_y))
             else:
                 ui_camera.blit(no_hp_img, offset=(hp_x, hp_y))
-
-        self.weapon.draw(camera=ui_camera)
 
     def get_state(self):
         if self.is_able_to_jump == False:
