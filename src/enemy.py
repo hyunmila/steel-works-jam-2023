@@ -134,34 +134,37 @@ class Warrior(Enemy):
     #     return cooldown - time.time()
 
 class Bullet:
-    def __init__(self, position : Vec2, vel : Vec2, direction : Vec2, collision_map : Map):
+    def __init__(self, path, position : Vec2, vel : Vec2, direction : Vec2, collision_map : Map):
         self.vel = vel
+        self.image = pygame.image.load(path).convert_alpha()
         self.position = position
         self.direction = direction # Vector2 like [0,-1] - normalized
         self.collision_map = collision_map
-        self.rect = pygame.Rect(position.x * PIXEL_SIZE, position.y * PIXEL_SIZE, 3, 7)
-
-    def draw(self):
-        pass
-    
-    # def update(self, camera):
-    #     if not self.collision_map.rect_collision(
-    #         bbox=BBox(self.rect.x / PIXEL_SIZE, self.rect.y / PIXEL_SIZE, 3 / PIXEL_SIZE, 7 / PIXEL_SIZE)
-    #         ):
-    #         if bullet.x < 0:
-    #             bullet.x = lerp(bullet.x, bullet.x + (-self.bullet_vel.x * dt), f)
-    #         else:
-    #             bullet.x = lerp(bullet.x, bullet.x + (self.bullet_vel.x * dt), f)
-            
-    #         if bullet.y < 0:
-    #             bullet.y = lerp(bullet.y, bullet.y + (-self.bullet_vel.y * dt), f)
-    #         else:
-    #             bullet.y = lerp(bullet.y, bullet.y + (self.bullet_vel.y * dt), f)
-    #         self.draw(camera ,self.image, bullet[1])
-    #         new_bullets.append(bullet)
         
-    #     self.bullets = new_bullets
-    #     self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))
+
+    def draw(self, camera, surf, pos):
+        camera.blit(surf, pos)
+    
+    def update(self, camera, dt):
+        f = 0.2
+        if not self.collision_map.rect_collision(
+            bbox=BBox(self.position.x, self.position.y, 1, 1)
+            ):
+            print (self.position)
+            if self.direction.x < 0:
+                self.position.x = lerp(self.position.x, self.position.x + (self.vel.x * self.direction.x *  dt), f)
+            else:
+                self.position.x = lerp(self.position.x, self.position.x + (self.vel.x * self.direction.x *  dt), f)
+            
+            if self.direction.y < 0:
+                self.position.y = lerp(self.position.y, self.position.y + (self.vel.y * self.direction.y *  dt), f)
+            else:
+                self.position.y = lerp(self.position.y, self.position.y + (self.vel.y * self.direction.y *  dt), f)
+            
+            self.draw(camera, self.image, self.position)
+            return True
+        else:
+            return False
 
 
 class Sorcerer(Enemy):
@@ -172,11 +175,27 @@ class Sorcerer(Enemy):
 
     def shoot(self, player_pos):
         if self.shoots(player_pos):
-            bullet = pygame.Rect(self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE, 10, 5)
-            # self.bullets.append((bullet, Vec2(player_pos.x - self.rect.x, player_pos.y - self.rect.y))) # (bullet, direction_of_bullet - Vec2 normalized)
-            self.bullets.append(bullet) # (bullet, direction_of_bullet - Vec2 normalized)
+            print("OK")
+            # bullet = pygame.Rect(self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE, 10, 5)
+            # # self.bullets.append((bullet, Vec2(player_pos.x - self.rect.x, player_pos.y - self.rect.y))) # (bullet, direction_of_bullet - Vec2 normalized)
+            # self.bullets.append(bullet) # (bullet, direction_of_bullet - Vec2 normalized)
             
     def update(self, player_pos, camera : Camera, dt):
+        flag = False
+        pressed_keys = pygame.key.get_pressed()
+
+        if pressed_keys[pygame.K_k]:
+            flag = True
+        if flag:
+            self.bullets.append(Bullet('res/plant.png', self.rect, Vec2(2, 2), Vec2(0,1), self.collision_map))
+        new_bullets = []
+        
+        for bullet in self.bullets:
+            print(f'Bullet posisiton: {bullet.position}')
+            if bullet.update(camera, dt):
+                new_bullets.append(bullet)
+        self.bullets = new_bullets
+
         self.ticks += dt
         if self.ticks > 2:
             self.shoot(player_pos)
@@ -219,28 +238,6 @@ class Sorcerer(Enemy):
                 self.rect.x = old_position.x
 
         new_bullets = []
-
-        # update all bullets
-        # for bullet in self.bullets:
-        #     if not self.collision_map.rect_collision(
-        #         bbox=BBox(bullet.x / PIXEL_SIZE, bullet.y / PIXEL_SIZE, 10 / PIXEL_SIZE, 5 / PIXEL_SIZE)
-        #         ):
-        #         if bullet.x < 0:
-        #             bullet.x = lerp(bullet.x, bullet.x + (-self.bullet_vel.x * dt), f)
-        #         else:
-        #             bullet.x = lerp(bullet.x, bullet.x + (self.bullet_vel.x * dt), f)
-                
-        #         if bullet.y < 0:
-        #             bullet.y = lerp(bullet.y, bullet.y + (-self.bullet_vel.y * dt), f)
-        #         else:
-        #             bullet.y = lerp(bullet.y, bullet.y + (self.bullet_vel.y * dt), f)
-        #         self.draw(camera ,self.image, bullet[1])
-        #         new_bullets.append(bullet)
-        
-        # self.bullets = new_bullets
-
-
-        # ______________________________________________________
 
         # self.ability(5)
         self.draw(camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE))

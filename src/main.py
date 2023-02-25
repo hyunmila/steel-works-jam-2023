@@ -144,6 +144,8 @@ spatial_text_box.offset = (100, 100)
 #     weapon.add_item(item3)
 
 flag = False
+enemy.add_enemy("warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20,20), collision_map = map)
+enemy.add_enemy("sorcerer", "res/wojownik-atakuje.png", Vec2(1, 1), 5, Vec2(20,20), collision_map = map)
 
 # main game loop
 while window.is_open():
@@ -159,6 +161,8 @@ while window.is_open():
     map.draw(camera=camera)
     player.draw(camera=camera, uicamera=ui_camera)
     text_box.draw(camera=ui_camera)
+
+    enemy.update_all(player.position, camera, window.get_delta())
 
     if input.is_action_just_pressed(action="debug-delta"):
         flag = not flag

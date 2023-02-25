@@ -1,5 +1,5 @@
 from typing import Optional
-from typing_extensions import Self
+# from typing_extensions import Self
 import pygame
 import math
 
@@ -22,7 +22,7 @@ class Tile:
         if self.img is not None:
             self.img = pygame.transform.scale(self.img, (size, size))
 
-    def copy(self) -> Self:
+    def copy(self):
         return Tile(
             img_path=self.img_path,
             collision=self.collision,
