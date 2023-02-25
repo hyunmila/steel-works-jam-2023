@@ -10,12 +10,11 @@ from core.math import BBox
 from core.animation import Animation
 
 
+pygame.init()
+
 BULLET_SPEED = 5
 PIXELS_IN_UNIT = 64
-
-BULLET_IMG = pygame.image.load("res/bullet.png")
-BULLET_IMG = pygame.transform.scale(BULLET_IMG, (64 * 6, 64))
-bullet_anim = Animation(BULLET_IMG, 6, frame_rate=8)
+bullet_img = None
 
 
 class Bullet:
@@ -26,6 +25,13 @@ class Bullet:
         collision_map: Map,
         on_collision: Callable,
     ):
+        global bullet_img
+        if bullet_img is None:
+            bullet_img = pygame.image.load("res/bullet.png").convert_alpha()
+            bullet_img = pygame.transform.scale(bullet_img, (64 * 6, 64))
+
+        self.bullet_anim = Animation(bullet_img, 6, frame_rate=8)
+
         self.position = position.copy()
         self.set_direction(direction)
         self.collision_map = collision_map
@@ -44,10 +50,10 @@ class Bullet:
         if self.collision_map.rect_collision(bbox):
             self.on_collision()
 
-        bullet_anim.update(window=window)
+        self.bullet_anim.update(window=window)
 
     def draw(self, camera: Camera) -> None:
-        img = bullet_anim.get_frame()
+        img = self.bullet_anim.get_frame()
 
         angle = -math.atan2(self._direction.y, self._direction.x) * 180 / math.pi - 90
         rotated_img = pygame.transform.rotate(img, angle)

@@ -18,10 +18,9 @@ from components.dialog_box import DialogBox
 
 PIXEL_SIZE = 64
 
-hp_img = pygame.image.load("res/helth.png")
-no_hp_img = pygame.image.load("res/nohelth.png")
-hp_img = pygame.transform.scale(hp_img, (PIXEL_SIZE, PIXEL_SIZE))
-no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+
+hp_img = None
+no_hp_img = None
 
 
 class Player:
@@ -33,6 +32,13 @@ class Player:
         bullet_manager: BulletManager,
         dialog_box: DialogBox,
     ) -> None:
+        global hp_img, no_hp_img
+        if hp_img is None:
+            hp_img = pygame.image.load("res/helth.png").convert_alpha()
+            no_hp_img = pygame.image.load("res/nohelth.png").convert_alpha()
+            hp_img = pygame.transform.scale(hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+            no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+
         self.inertia = 1.0
         self.position = Vec2(0.0, 0.0)
         self.velocity = Vec2(0.0, 0.0)
@@ -49,20 +55,24 @@ class Player:
         self.images = {
             "jumping": [
                 pygame.transform.scale(
-                    pygame.image.load("res/player_jump.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player_jump.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 )
             ],
             "walking": [
                 pygame.transform.scale(
-                    pygame.image.load("res/player_r.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player_r.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 ),
                 pygame.transform.scale(
-                    pygame.image.load("res/player_l.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player_l.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 ),
             ],
             "standing": [
                 pygame.transform.scale(
-                    pygame.image.load("res/player.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 )
             ],
         }
@@ -112,7 +122,7 @@ class Player:
 
             if window.get_input().is_action_pressed("jump"):
                 # if pressed_keys[pygame.K_w]:
-                if self.is_jumping == False and self.is_able_to_jump == True:
+                if self.is_jumping == False:
                     self.t_start = perf_counter()
                     self.is_jumping = True
                     self.is_able_to_jump = False

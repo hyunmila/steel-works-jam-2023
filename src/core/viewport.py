@@ -12,6 +12,9 @@ class Viewport:
     def get_width(self) -> float:
         return self.window.get_ratio() * self.height
 
+    def get_size(self) -> Tuple[float, float]:
+        return (self.get_width(), self.height)
+
     # Offset is in pixels.
     def blit(
         self, surface: pygame.Surface, offset: Tuple[float, float] = (0, 0)
@@ -22,12 +25,12 @@ class Viewport:
         scaled_surface = pygame.transform.scale(
             surface,
             (
-                int(surface.get_width() * window_scale),
-                int(surface.get_height() * window_scale),
+                surface.get_width() * window_scale,
+                surface.get_height() * window_scale,
             ),
         )
 
         self.window.blit(
             scaled_surface,
-            (int(offset[0] * window_scale), int(offset[1] * window_scale)),
+            (offset[0] * window_scale, offset[1] * window_scale),
         )

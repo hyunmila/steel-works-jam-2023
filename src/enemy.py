@@ -37,7 +37,7 @@ PIXEL_SIZE = 64
 
 class Enemy(metaclass=abc.ABCMeta):
     def __init__(self, path, pos: Vec2, dist, vel: Vec2, collision_map: Map):
-        self.image = pygame.image.load(path)
+        self.image = pygame.image.load(path).convert_alpha()
         self.image = pygame.transform.scale(self.image, (PIXEL_SIZE, PIXEL_SIZE))
         # self.rect = self.image.get_rect(center=(pos[0] * PIXEL_SIZE, pos[1] * PIXEL_SIZE))
         self.rect = pos

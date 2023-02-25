@@ -51,7 +51,7 @@ ui_camera = Camera(viewport=viewport)
 
 turbokserokopiarka = Item(
     name="turbokserokopiarka",
-    img=pygame.image.load("res/turbokserokopiarka.png"),
+    img=pygame.image.load("res/turbokserokopiarka.png").convert_alpha(),
     item_type=ItemType.GUN,
     ammo_type="dupa2",
     weight=10.0,
@@ -61,7 +61,7 @@ turbokserokopiarka = Item(
 
 ultraekspres = Item(
     name="ultraekspres",
-    img=pygame.image.load("res/ultraekspres.png"),
+    img=pygame.image.load("res/ultraekspres.png").convert_alpha(),
     item_type=ItemType.GUN,
     ammo_type="dupa2",
     weight=2.0,
@@ -136,7 +136,7 @@ spatial_text_box.offset = (100, 100)
 #     weight=69.0,
 #     shape=(2, 3),
 #     ammo_type="dupa2",
-#     img=pygame.image.load("res/test.png"),
+#     img=pygame.image.load("res/test.png").convert_alpha(),
 #     color=Color.RED
 # )
 
@@ -146,7 +146,7 @@ spatial_text_box.offset = (100, 100)
 #     weight=42.0,
 #     shape=(4,1),
 #     ammo_type="",
-#     img=pygame.image.load("res/jola.png"),
+#     img=pygame.image.load("res/jola.png").convert_alpha(),
 #     color=Color.GREEN
 # )
 
@@ -156,7 +156,7 @@ spatial_text_box.offset = (100, 100)
 #     weight=45.0,
 #     shape=(2,1),
 #     ammo_type="",
-#     img=pygame.image.load("res/wojownik-atakuje.png"),
+#     img=pygame.image.load("res/wojownik-atakuje.png").convert_alpha(),
 #     color=Color.BLUE
 # )
 
@@ -197,8 +197,18 @@ enemy.add_enemy(
 )
 # enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
 
-parallax = Parallax(
-    path="res/miasteczko-agh.png", height=720, movement_scale=Vector2(0, 0)
+city_parallax = Parallax(
+    path="res/miasteczko-agh.png",
+    height=722,
+    offset=(0, -361),
+    movement_scale=Vector2(0.8, 1),
+)
+
+office_parallax = Parallax(
+    path="res/office-walls.png",
+    height=722,
+    offset=(0, -361),
+    movement_scale=Vector2(0, 0),
 )
 
 # main game loop
@@ -216,6 +226,8 @@ while window.is_open():
     bullet_manager.update(window=window)
     dialog_box.update(window=window)
 
+    city_parallax.draw(camera=camera)
+    office_parallax.draw(camera=camera)
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
     enemy.update_all(player.position, camera, window.get_delta())
@@ -224,6 +236,5 @@ while window.is_open():
     weapon_manager.draw(camera=ui_camera)
     text_box.draw(camera=ui_camera)
     dialog_box.draw(camera=ui_camera)
-    # parallax.draw(camera=camera)
 
     window.swap_buffers()

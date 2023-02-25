@@ -17,7 +17,7 @@ class Tile:
     ) -> None:
         self.img_path = img_path
         try:
-            self.img = pygame.image.load(img_path)
+            self.img = pygame.image.load(img_path).convert_alpha()
         except:
             self.img = None
         self.collision = collision
@@ -46,10 +46,10 @@ class Map:
 
         # Scale all tiles to desired resolution
         for tile in self._tiles.values():
-            tile._resize(tile_size)
+            tile._resize(tile_size + 1)
 
     def load_from_file(self, path: str) -> None:
-        img = pygame.image.load(path)
+        img = pygame.image.load(path).convert_alpha()
 
         self._map_size = img.get_size()
         self._map = []
