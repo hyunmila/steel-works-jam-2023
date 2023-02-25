@@ -99,7 +99,7 @@ class Player:
             self.animidx += 1
             # print(self.animidx)
             self.ticks = 0
-        # print(f"self.is_able_to_jump={self.is_able_to_jump}")
+        # # print(f"self.is_able_to_jump={self.is_able_to_jump}")
 
         acceleration = Vec2(0.0, 30)
 
@@ -180,7 +180,7 @@ class Player:
         # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
         # print("PRE", self.velocity, self.position)
-
+            
         self.position.y = lerp(
             self.position.y, self.position.y + (self.velocity.y * dt), fy
         )
