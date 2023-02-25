@@ -11,6 +11,10 @@ from components.map import Map
 
 PIXEL_SIZE = 16
 
+def bfs():
+    pass
+
+
 def lerp(a, b, t):
     return a + (b-a)*t
 class Player:
@@ -32,7 +36,7 @@ class Player:
         x_val = 200
         dt = window.get_delta()
 
-        print(f"self.is_able_to_jump={self.is_able_to_jump}")
+        # print(f"self.is_able_to_jump={self.is_able_to_jump}")
 
         acceleration = Vec2(0.0, y_val)
 
@@ -83,7 +87,8 @@ class Player:
         old_position = self.position.copy()
         # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
 
-        print("PRE", self.velocity, self.position)
+        # print("PRE", self.velocity, self.position)
+        # print("PRE", self.position)
 
         self.position.y = lerp(self.position.y, self.position.y + (self.velocity.y * dt), f)
 
@@ -91,6 +96,7 @@ class Player:
             bbox=BBox(self.position.x, self.position.y, 1, 1)
         ):
             if old_position.y < self.position.y:
+                 
                 self.is_able_to_jump = True
             else:
                 self.is_jumping = False
@@ -103,12 +109,12 @@ class Player:
         if self.collision_map.rect_collision(
             bbox=BBox(self.position.x, self.position.y, 1, 1)
         ):
-            print("x1", self.position.x)
+            # print("x1", self.position.x)
             self.position.x = old_position.x
-            print("x2", self.position.x)
+            # print("x2", self.position.x)
             self.velocity.x = 0
 
-        print("POST", self.velocity, self.position)
+        # print("POST", self.velocity, self.position)
 
 
         self.follow_camera.position = (

@@ -1,4 +1,5 @@
 import pygame
+from pygame.math import Vector2 as Vec2
 from pygame import Vector2
 from core.viewport import Viewport
 from core.window import Window
@@ -10,6 +11,7 @@ from components.map import Map, Tile
 
 from item import Item, ItemType
 from weapon import Weapon
+import enemy, time
 
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
@@ -84,6 +86,11 @@ spatial_text_box.offset = (100, 100)
 
 # weapon.add_item(item)
 
+# ENEMY testing
+enemy.add_enemy("warrior", "res/wojownik.png", Vec2(2, 2), 5, Vec2(20,20), collision_map = map)
+enemy.add_enemy("sorcerer", "res/wojownik-atakuje.png", Vec2(1, 1), 5, Vec2(20,20), collision_map = map)
+# enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
+
 
 # main game loop
 while window.is_open():
@@ -93,13 +100,17 @@ while window.is_open():
         print(f"delta = {window.get_delta()}")
 
     player.update(window=window)
+
+    # enemy updating
+    enemy.update_all(player.position, camera, window.get_delta())
+
     text_box.offset = (-ui_viewport.get_width() / 2, -ui_viewport.height / 2)
 
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
     player.draw(camera=camera)
     text_box.draw(camera=ui_camera)
-
+    
     # ui_camera.blit(
     #     weapon.process(Vector2(input.get_mouse_pos())),
     #     (-ui_viewport.get_width() / 2, -ui_viewport.height / 2),
