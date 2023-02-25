@@ -341,7 +341,6 @@ class Sorcerer(Enemy):
         new_bullets = []
 
         for bullet in self.bullets:
-            print(f"Bullet posisiton: {bullet.position}")
             if bullet.update(camera, dt):
                 new_bullets.append(bullet)
         self.bullets = new_bullets

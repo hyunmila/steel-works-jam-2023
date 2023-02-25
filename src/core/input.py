@@ -88,7 +88,7 @@ class Input:
     def _update_key_state(self, key: int, state: bool) -> None:
         if state:
             self._pressed_keys.add(key)
-        else:
+        elif key in self._pressed_keys:
             self._pressed_keys.remove(key)
 
     def _integrate_updates(self) -> None:
