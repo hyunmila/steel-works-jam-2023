@@ -115,8 +115,6 @@ class Enemy(metaclass=abc.ABCMeta):
         else:
             self.vel.y = lerp(self.vel.y, 0.0, fy)
 
-        print(f'VELOCITY: {self.vel}')
-
         if self.vel.x > 0:
             self.facing = "right"
         elif self.vel.x < 0:
@@ -328,7 +326,6 @@ class Sorcerer(Enemy):
         new_bullets = []
         
         for bullet in self.bullets:
-            print(f'Bullet posisiton: {bullet.position}')
             if bullet.update(camera, dt):
                 new_bullets.append(bullet)
         self.bullets = new_bullets
