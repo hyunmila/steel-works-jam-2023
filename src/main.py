@@ -2,8 +2,7 @@ import pygame
 from pygame.math import Vector2 as Vec2
 from colors import Color
 from map_engine import BBox, MapEngine, Tile
-
-pygame.transform
+from player import Player
 
 pygame.init()
 
@@ -24,15 +23,24 @@ ticks = 0
 map_engine = MapEngine(
     tiles={
         Color.WHITE: Tile("", False),
-        Color.BLACK: Tile("assets/metalowa-podłoga-2.png", True),
+        Color.BLACK: Tile("res/metalowa-podłoga-2.png", True),
     },
     tile_size=64,
 )
 
-map_engine.load_from_file("assets/test-map.png")
+map_engine.load_from_file("res/test-map.png")
 
 player_pos = Vec2(0, 0)
 player_speed = Vec2(0, 0)
+
+player = Player()
+
+# text display
+text = "Jak to jest byc skryba, dobrze?\nTo nie ma tak, ze dobrze czy niedobrze\nGdybym mial powiedziec"
+fontcolor = COLOR.BLUE
+textdisplay = TextDisplay(text, fontcolor, fontsize=16)
+textposition = (100, 100)
+# print(textdisplay.img.get_width()/2, textdisplay.img.get_height()/2) # fontsize 16x16 idealne kwadraty uwu
 
 while running:
     screen.fill(Color.BLACK)
@@ -67,14 +75,15 @@ while running:
 
     player_speed.y += 9.81 * (dt / 1000)
 
+    # epicki gracz Mili
+    player.update(pressed_keys, dt)
+    pygame.draw.circle(screen, COLOR.WHITE, player.position, 50)
+
     # Rendering
-    __scaled = pygame.transform.scale(
-        screen, (__screen.get_width(), __screen.get_height())
-    )
-    __screen.blit(__scaled, (0, 0))
-    map_engine.draw(screen=__screen, offset=(0, 0))
+    screen.blit(textdisplay.img, textposition)  # text display
+    map_engine.draw(screen=screen, offset=(0, 0))
     pygame.draw.polygon(
-        __screen,
+        screen,
         (255, 0, 0),
         (
             (64 * player_pos[0], 64 * player_pos[1]),
@@ -83,4 +92,9 @@ while running:
             (64 * player_pos[0], 64 * (player_pos[1] + 1)),
         ),
     )
+
+    __scaled = pygame.transform.scale(
+        screen, (__screen.get_width(), __screen.get_height())
+    )
+    __screen.blit(__scaled, (0, 0))
     pygame.display.flip()
