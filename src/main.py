@@ -3,6 +3,8 @@ from pygame.math import Vector2 as Vec2
 from colors import Color
 from map_engine import BBox, MapEngine, Tile
 from player import Player
+from src.weapon import Weapon
+from src.item import Item, ItemType
 
 pygame.init()
 
@@ -33,6 +35,7 @@ map_engine.load_from_file("res/test-map.png")
 player_pos = Vec2(0, 0)
 player_speed = Vec2(0, 0)
 
+# mila's player
 player = Player()
 
 # text display
@@ -42,10 +45,30 @@ textdisplay = TextDisplay(text, fontcolor, fontsize=16)
 textposition = (100, 100)
 # print(textdisplay.img.get_width()/2, textdisplay.img.get_height()/2) # fontsize 16x16 idealne kwadraty uwu
 
+# igor's item system
+weapon = Weapon()
+
+item = Item(
+    name="dupa",
+    item_type=ItemType.GUN,
+    weight=69.0,
+    shape=(2, 3),
+    ammo_type="dupa2",
+    img=pygame.image.load("res/test.png"),
+)
+
+weapon.add_item(item)
+
 while running:
     screen.fill(Color.BLACK)
     dt = clock.tick(60)
     ticks += dt
+
+    scale_width = __screen.get_width() / screen.get_width()
+    scale_height = __screen.get_height() / screen.get_height()
+    relative_mouse = Vec2(pygame.mouse.get_pos())
+    relative_mouse.x /= scale_width
+    relative_mouse.y /= scale_height
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -80,6 +103,7 @@ while running:
     pygame.draw.circle(screen, COLOR.WHITE, player.position, 50)
 
     # Rendering
+    screen.blit(weapon.process(relative_mouse), (0, 0))
     screen.blit(textdisplay.img, textposition)  # text display
     map_engine.draw(screen=screen, offset=(0, 0))
     pygame.draw.polygon(
