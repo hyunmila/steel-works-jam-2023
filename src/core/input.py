@@ -3,6 +3,8 @@ import pygame
 
 pygame.K_0
 
+def clamp_value(x, l, h):
+    return min(max(x, l), h)
 
 class Input:
     def __init__(self) -> None:
@@ -33,7 +35,7 @@ class Input:
                 value += self._actions[action][key]
 
         if clamp:
-            return pygame.math.clamp(value, -1, 1)
+            return clamp_value(value, -1, 1)
         else:
             return value
 
