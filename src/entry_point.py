@@ -25,5 +25,5 @@ game = Game(
         "end" : EndLevel
 
     },
-    initial_level="lvl3"#"art-test-level",
+    initial_level="lvl1"#"art-test-level",
 )
