@@ -10,7 +10,7 @@ class SecondLevel:
     def open(self, game: Game, prev_level_id: str) -> None:
         self.game = game
 
-        self.game.map.load_from_file("res/next-test-level-map.png.png")
+        self.game.map.load_from_file("res/next-test-level-map.png")
 
         self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
@@ -34,7 +34,7 @@ class SecondLevel:
 
     def update(self):
         pass
-        # self.trigger.update(window=self.game.window)
+        self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)
