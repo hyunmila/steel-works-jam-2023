@@ -59,7 +59,7 @@ class Enemy(metaclass=abc.ABCMeta):
         self.rect = pos
         self.facing = "left"
         self.vel = Vec2(0.0, 0.0)
-        self.dist = 10
+        self.dist = 3
         self.collision_map = collision_map
         self.health = 3
         self.ticks = 3
@@ -625,10 +625,10 @@ class Boss():
         if player_pos.x > self.position.x: self.facing = "right"
         else: self.facing = "left"
         
-        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 1:
+        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 0.3:
             self.shoot_ticks = 0
             direction = Vec2(player_pos - self.position).normalize()
-            self.bullet_manager.add_bullet(self.position, direction)
+            self.bullet_manager.add_bullet(self.position + Vec2(1, 1), direction)
 
         self.bullet_manager.update(window)
 
