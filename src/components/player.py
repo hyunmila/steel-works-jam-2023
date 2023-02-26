@@ -94,6 +94,9 @@ class Player:
         # self.falling_sound = Sound("res/falling.mp3")
         self.footsteps_sound = Sound("res/footsteps.mp3", loop=True)
         self.pickup_sound = Sound("res/pickup.mp3")
+        self.uwu_sound = Sound("res/uwu.mp3")
+        self.hit_sound = Sound("res/hit.mp3")
+        self.beam_sound = Sound("res/beam.mp3")
 
         self.weapon_rotation = 0
         self.bullet_manager = bullet_manager
@@ -166,6 +169,7 @@ class Player:
                     dir = Vec2(1, 0).rotate(self.weapon_rotation)
                     pos = self.position + dir * 0.5
                     self.bullet_manager.add_bullet(position=pos, direction=dir)
+                    self.beam_sound.play()
 
             # print(acceleration)
             if self.is_jumping == False and self.is_able_to_jump == False:
@@ -363,10 +367,31 @@ class Player:
 
     def combat(self, enemy_meneger : EnemyManager ):
         enemies = enemy_meneger.get_enemies()
+
+        if enemy_meneger.attack(self.position):
+            self.hp -= 1
+
+            if self.hp >= 0:
+                self.hit_sound.play()
+            if self.hp == 0:
+                self.uwu_sound.play()
+
+        if self.is_dead():
+            self.footsteps_sound.stop()
+            ## tutaj robić coś gdy gracz już nie żyje
+            pass
+
         for enemy in enemies:
             if enemy.attack(self.position):
                 self.hp -= 1
+
+                if self.hp >= 0:
+                    self.hit_sound.play()
+                if self.hp == 0:
+                    self.uwu_sound.play()
+
             if self.is_dead():
+                self.footsteps_sound.stop()
                 ## tutaj robić coś gdy gracz już nie żyje
                 pass
             
