@@ -13,6 +13,7 @@ class TestLevel:
         self.game.player.position = Vector2(5, 5)
         self.game.enemy_manager.add_enemy("warrior", Vector2(9, 12))
         self.game.enemy_manager.add_enemy("warrior", Vector2(9, 12))
+        self.game.enemy_manager.add_enemy("sorcerer", Vector2(9, 12))
 
         self.spatial_text_box = TextBox(
             font_path="res/uwu-font.ttf",

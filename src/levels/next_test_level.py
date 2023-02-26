@@ -11,6 +11,8 @@ class NextTestLevel:
         self.game = game
 
         self.game.map.load_from_file("res/level4.png")
+        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
 
         self.game.player.position = Vector2(11, 106)
         self.game.camera.position = (

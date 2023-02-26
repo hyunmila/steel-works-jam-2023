@@ -149,6 +149,7 @@ class Game:
             self.window, self.player.position, self.bullet_manager
         )  # TODO: those extra arguments should be provided during initialization
         self.player.update(window=self.window)
+        self.player.combat(self.enemy_manager)
         self.bullet_manager.update(window=self.window)
         self.dialog_box.update(window=self.window)
         self.weapon_manager.update(window=self.window)

@@ -16,6 +16,7 @@ from components.map import Map
 from components.bullet import BulletManager
 from components.dialog_box import DialogBox
 
+from enemy import EnemyManager
 PIXEL_SIZE = 64
 
 
@@ -341,3 +342,18 @@ class Player:
 
     def get_bbox(self) -> BBox:
         return BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
+    
+    def is_dead(self):
+        if self.hp <= 0:
+            return True
+        return False 
+
+    def combat(self, enemy_meneger : EnemyManager ):
+        enemies = enemy_meneger.get_enemies()
+        for enemy in enemies:
+            if enemy.attack(self.position):
+                self.hp -= 1
+            if self.is_dead():
+                ## tutaj robić coś gdy gracz już nie żyje
+                pass
+            
