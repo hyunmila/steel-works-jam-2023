@@ -6,7 +6,7 @@ from game import Game
 
 
 class TestLevel:
-    def open(self, game: Game) -> None:
+    def open(self, game: Game, prev_level_id: str) -> None:
         self.game = game
 
         self.game.map.load_from_file("res/test-map.png")

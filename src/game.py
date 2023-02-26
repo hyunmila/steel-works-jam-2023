@@ -17,9 +17,12 @@ from core.window import Window
 
 
 class Game:
-    def __init__(self, initial_level):
+    def __init__(self, levels, initial_level: str):
         self._init()
 
+        self._levels = levels
+        self._current_level = None
+        self._current_level_id = ""
         self.set_level(initial_level)
 
         while self.window.is_open():
@@ -69,8 +72,6 @@ class Game:
             offset=(0, -361),
             movement_scale=Vector2(0.8, 1),
         )
-
-        self.current_level = None
 
     def _init_input(self):
         input = self.window.get_input()
@@ -152,34 +153,36 @@ class Game:
         self.dialog_box.update(window=self.window)
         self.weapon_manager.update(window=self.window)
 
-        if self.current_level is not None and hasattr(self.current_level, "update"):
-            self.current_level.update()
+        if self._current_level is not None and hasattr(self._current_level, "update"):
+            self._current_level.update()
 
     def _draw(self):
         self.city_parallax.draw(camera=self.camera)
 
-        if self.current_level is not None and hasattr(self.current_level, "draw_bg"):
-            self.current_level.draw_bg()
+        if self._current_level is not None and hasattr(self._current_level, "draw_bg"):
+            self._current_level.draw_bg()
 
         self.map.draw(camera=self.camera)
         self.enemy_manager.draw(camera=self.camera)
         self.player.draw(camera=self.camera, ui_camera=self.ui_camera)
         self.bullet_manager.draw(camera=self.camera)
 
-        if self.current_level is not None and hasattr(self.current_level, "draw_fg"):
-            self.current_level.draw_fg()
+        if self._current_level is not None and hasattr(self._current_level, "draw_fg"):
+            self._current_level.draw_fg()
 
         self.dialog_box.draw(camera=self.ui_camera)
         self.weapon_manager.draw(camera=self.ui_camera)
 
     def _close(self):
-        if self.current_level is not None and hasattr(self.current_level, "close"):
-            self.current_level.close()
+        if self._current_level is not None and hasattr(self._current_level, "close"):
+            self._current_level.close()
 
-    def set_level(self, Level):
-        if self.current_level is not None and hasattr(self.current_level, "close"):
-            self.current_level.close()
-        self.current_level = Level()
+    def set_level(self, level_id: str):
+        if self._current_level is not None and hasattr(self._current_level, "close"):
+            self._current_level.close()
+        self._current_level = self._levels[level_id]()
 
-        if self.current_level.open is not None:
-            self.current_level.open(game=self)
+        if hasattr(self._current_level, "open"):
+            self._current_level.open(game=self, prev_level_id=self._current_level_id)
+
+        self._current_level_id = level_id

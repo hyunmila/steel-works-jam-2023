@@ -31,6 +31,7 @@ class Player:
         weapon_manager: WeaponManager,
         bullet_manager: BulletManager,
         dialog_box: DialogBox,
+        follow_camera_margin: float = 0,
     ) -> None:
         global hp_img, no_hp_img
         if hp_img is None:
@@ -49,6 +50,7 @@ class Player:
         self.weapon = weapon_manager
 
         self.follow_camera = follow_camera
+        self.follow_camera_margin = follow_camera_margin
         self.collision_map = collision_map
         self.ticks = 0
         self.animidx = 0
@@ -114,9 +116,7 @@ class Player:
         acceleration = Vec2(0.0, 30)
 
         if window.get_input().is_action_just_pressed("interact"):
-            npc = self.collision_map.interaction_collision(
-                bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-            )
+            npc = self.collision_map.interaction_collision(bbox=self.get_bbox())
             if npc is not None:
                 self.dialog_box = npc.interact()
 
@@ -198,9 +198,7 @@ class Player:
             self.position.y, self.position.y + (self.velocity.y * dt), fy
         )
 
-        if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-        ):
+        if self.collision_map.rect_collision(bbox=self.get_bbox()):
             if old_position.y < self.position.y:
                 if not self.is_able_to_jump:
                     self.is_able_to_jump = True
@@ -219,9 +217,7 @@ class Player:
             self.position.x, self.position.x + (self.velocity.x * dt), fx
         )
 
-        if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-        ):
+        if self.collision_map.rect_collision(bbox=self.get_bbox()):
             # print("x1", self.position.x)
             self.position.x = old_position.x
             # print("x2", self.position.x)
@@ -230,9 +226,7 @@ class Player:
         # print("POST", self.velocity, self.position)
 
         any_item = False
-        while item := self.collision_map.take_usable_collision(
-            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-        ):
+        while item := self.collision_map.take_usable_collision(bbox=self.get_bbox()):
             any_item = True
             self.weapon.add_item(item)
 
@@ -253,15 +247,17 @@ class Player:
         )
 
         # Clamp camera position to never look outside of the map
-        w0 = self.follow_camera.viewport.get_width() / 2
+        w0 = self.follow_camera.viewport.get_width() / 2 + self.follow_camera_margin
         w1 = (
             self.collision_map.get_map_size()[0] * self.collision_map.get_tile_size()
             - self.follow_camera.viewport.get_width() / 2
+            - self.follow_camera_margin
         )
-        h0 = self.follow_camera.viewport.get_height() / 2
+        h0 = self.follow_camera.viewport.get_height() / 2 + self.follow_camera_margin
         h1 = (
             self.collision_map.get_map_size()[1] * self.collision_map.get_tile_size()
             - self.follow_camera.viewport.get_height() / 2
+            - self.follow_camera_margin
         )
         self.follow_camera.position = (
             pygame.math.clamp(self.follow_camera.position[0], w0, w1)
@@ -334,3 +330,6 @@ class Player:
             self.max_hp = 5
         else:
             self.max_hp = 3
+
+    def get_bbox(self) -> BBox:
+        return BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
