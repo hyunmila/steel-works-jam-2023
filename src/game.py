@@ -84,7 +84,7 @@ class Game:
         input.add_action_key(action="jump", key=pygame.K_SPACE)
         input.add_action_key(action="jump", key=pygame.K_w)
         input.add_action_key(action="jump", key=pygame.K_UP)
-        input.add_action_key(action="inventory", key=pygame.K_i)
+        input.add_action_key(action="inventory", key=pygame.K_q)
         input.add_action_key(action="fire", key=1)  # left mouse button
 
     def _init_map(self):

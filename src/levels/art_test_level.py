@@ -29,6 +29,7 @@ class ArtTestLevel:
                     "Also,",
                     "Collision tiles are\ninvisible for now.",
                     "Anyways,\nGo to the right to\nvisit the next level.",
+                    "123456789012345678901234567890123456\n123456789012345678901234567890123456"
                 ]
             )
         self.game.camera.position = (
