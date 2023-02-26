@@ -4,6 +4,7 @@ from game import Game
 from components.sprite import Sprite
 from components.trigger import Trigger
 from core.math import BBox
+from objective import Objective
 
 
 class BossLevel:
@@ -23,7 +24,10 @@ class BossLevel:
 
         self.level_art = Sprite(path="res/boss_resized.png", scale=4)
 
-
+        self.objective = Objective(
+            {},
+            kill_all=True
+        )
 
         self.trigger = Trigger(
             player=self.game.player,
@@ -32,8 +36,8 @@ class BossLevel:
         )
 
     def update(self):
-        pass
-        self.trigger.update(window=self.game.window)
+        if self.objective.satisfied(self.game.player, self.game.enemy_manager._enemies):
+            self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)

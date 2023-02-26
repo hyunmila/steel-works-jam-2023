@@ -4,7 +4,7 @@ from game import Game
 from components.sprite import Sprite
 from components.trigger import Trigger
 from core.math import BBox
-
+from objective import Objective
 
 class FourthLevel:
     def open(self, game: Game, prev_level_id: str) -> None:
@@ -22,6 +22,10 @@ class FourthLevel:
 
         self.level_art = Sprite(path="res/level4_graphics.png", scale=4)
 
+        self.objective = Objective(
+            {},
+            kill_all=False
+        )
 
 
         self.trigger = Trigger(
@@ -31,8 +35,8 @@ class FourthLevel:
         )
 
     def update(self):
-        pass
-        self.trigger.update(window=self.game.window)
+        if self.objective.satisfied(self.game.player, self.game.enemy_manager._enemies):
+            self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)

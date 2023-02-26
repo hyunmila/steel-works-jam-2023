@@ -4,6 +4,7 @@ from game import Game
 from components.sprite import Sprite
 from components.trigger import Trigger
 from core.math import BBox
+from objective import Objective
 
 
 class FirstLevel:
@@ -13,7 +14,10 @@ class FirstLevel:
 
         self.game.map.load_from_file("res/art-test-level-map.png")
 
-
+        self.objective = Objective(
+            {"ultracan": 2},
+            kill_all=False
+        )
 
         self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
@@ -23,11 +27,7 @@ class FirstLevel:
             self.game.player.position * self.game.map.get_tile_size()
         )
 
-
         self.level_art = Sprite(path="res/art-test-level-art.png", scale=4)
-
-
-
 
         self.trigger = Trigger(
             player=self.game.player,
@@ -36,8 +36,8 @@ class FirstLevel:
         )
 
     def update(self):
-        pass
-        self.trigger.update(window=self.game.window)
+        if self.objective.satisfied(self.game.player, self.game.enemy_manager._enemies):
+            self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)

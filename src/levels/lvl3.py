@@ -4,7 +4,7 @@ from game import Game
 from components.sprite import Sprite
 from components.trigger import Trigger
 from core.math import BBox
-
+from objective import Objective
 
 class ThirdLevel:
     def open(self, game: Game, prev_level_id: str) -> None:
@@ -23,8 +23,15 @@ class ThirdLevel:
 
         self.level_art = Sprite(path="res/level3_resized.png", scale=4)
 
-
-
+        #GOAL: Defeat all enemies and collect an extraphotocopier, coffee supermachine and 5 ultracans
+        self.objective = Objective(
+            {
+                'extraphotocopier': 1,
+                'coffee supermachine': 1,
+                'ultracan': 5,
+            },
+            kill_all=True
+        )
 
         self.trigger = Trigger(
             player=self.game.player,
@@ -33,8 +40,8 @@ class ThirdLevel:
         )
 
     def update(self):
-        pass
-        self.trigger.update(window=self.game.window)
+        if self.objective.satisfied(self.game.player, self.game.enemy_manager._enemies):
+            self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)

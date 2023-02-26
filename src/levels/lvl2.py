@@ -4,6 +4,7 @@ from game import Game
 from components.sprite import Sprite
 from components.trigger import Trigger
 from core.math import BBox
+from objective import Objective
 
 
 class SecondLevel:
@@ -20,11 +21,12 @@ class SecondLevel:
             self.game.player.position * self.game.map.get_tile_size()
         )
 
-
         self.level_art = Sprite(path="res/next-test-level-art.png", scale=4)
 
-
-
+        self.objective = Objective(
+            {},
+            kill_all=True
+        )
 
         self.trigger = Trigger(
             player=self.game.player,
@@ -33,8 +35,8 @@ class SecondLevel:
         )
 
     def update(self):
-        pass
-        self.trigger.update(window=self.game.window)
+        if self.objective.satisfied(self.game.player, self.game.enemy_manager._enemies):
+            self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)
