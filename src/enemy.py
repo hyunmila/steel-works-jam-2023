@@ -495,7 +495,7 @@ class Boss():
         self.vel = Vec2(0.0, 0.0)
         self.dist = 10
         self.collision_map = collision_map
-        self.health = 2
+        self.health = 15
         self.ticks = 2
         self.max_distance = 2
         self.bullet_manager = BulletManager(collision_map)
@@ -585,7 +585,7 @@ class Boss():
         if player_pos.x > self.position.x: self.facing = "right"
         else: self.facing = "left"
         
-        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 0.3:
+        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 0.1:
             self.shoot_ticks = 0
             direction = Vec2(player_pos - self.position).normalize()
             self.bullet_manager.add_bullet(self.position + Vec2(1, 1), direction)
