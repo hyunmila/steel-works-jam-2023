@@ -16,11 +16,14 @@ from core.viewport import Viewport
 from core.window import Window
 from levels.npc_preset import get_npc
 from levels.item_preset import get_item
-
+from core.music import Sound
 
 class Game:
     def __init__(self, levels, initial_level: str):
         self._init()
+
+        self.music = Sound("res/main.wav", loop=True, volume=0.4)
+        self.music.play()
 
         self._levels = levels
         self._current_level = None
@@ -184,6 +187,8 @@ class Game:
             self._current_level.close()
 
     def set_level(self, level_id: str):
+        self.player.reset()
+
         if self._current_level is not None and hasattr(self._current_level, "close"):
             self._current_level.close()
         self._current_level = self._levels[level_id]()

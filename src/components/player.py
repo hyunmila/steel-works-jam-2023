@@ -364,6 +364,10 @@ class Player:
         if self.hp <= 0:
             return True
         return False 
+    
+    def reset(self):
+        self.weapon.reset()
+        self.hp = self.max_hp
 
     def combat(self, enemy_meneger : EnemyManager ):
         enemies = enemy_meneger.get_enemies()

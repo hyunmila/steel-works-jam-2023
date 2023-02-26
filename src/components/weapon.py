@@ -30,6 +30,15 @@ class WeaponManager:
         from_items = Counter([item.name for item, _ in self.items])
         from_inventory = self.inventory.get_for_objective()
         return {**from_items, **from_inventory}
+    
+    def reset(self):
+        self.items: List[Tuple[Item, Vec2]] = []
+        self.inventory = Inventory()
+        self.selected_item: Optional[Item] = None
+        self.visible = False
+        self.surface = None
+        self.thud_sound = Sound("res/thud.mp3")
+        self.pickup_sound = Sound("res/pickup.mp3")
 
     def is_valid(self, spot, item):
         rect = pygame.Rect(spot, item.shape)
