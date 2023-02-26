@@ -16,7 +16,7 @@ class Menu:
 
     def run_menu(self):
         pygame.init()
-        
+
         clock = pygame.time.Clock()
         running = True
         mouse = (0, 0)

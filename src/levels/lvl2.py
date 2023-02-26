@@ -13,7 +13,15 @@ class SecondLevel:
 
         self.game.map.load_from_file("res/next-test-level-map.png")
 
-        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(4, 9))
+        self.game.enemy_manager.add_enemy("sorcerer", Vector2(4, 2))
+        self.game.enemy_manager.add_enemy("sorcerer", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(8, 8))
+        self.game.enemy_manager.add_enemy("sorcerer", Vector2(8, 6))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(16, 10))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(22, 2))
+
+
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
         # exit : Vector2(24, 2)
         self.game.player.position = Vector2(2, 11)

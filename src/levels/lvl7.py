@@ -5,7 +5,7 @@ from components.sprite import Sprite
 from components.trigger import Trigger
 from core.math import BBox
 from objective import Objective
-
+from core.music import Sound
 
 class SeventhLevel:
     def open(self, game: Game, prev_level_id: str) -> None:
@@ -14,7 +14,22 @@ class SeventhLevel:
         self.game.map.load_from_file("res/level7.png")
 
 
-        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(8,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(9,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(10,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(11,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(12,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(13,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(8,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(9,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(10,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(11,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(12,8))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(13,8))
+        self.game.enemy_manager.add_enemy("sorcerer", Vector2(4,2))
+
+
+
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
         # exit : Vector2(4, 8)
         self.game.player.position = Vector2(0, 8)

@@ -19,7 +19,7 @@ class FirstLevel:
             kill_all=False
         )
 
-        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        # self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
         # EXIT: Vector2(19,7)
         self.game.player.position = Vector2(1, 7)
