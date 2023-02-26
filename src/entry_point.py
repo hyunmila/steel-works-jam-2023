@@ -9,5 +9,5 @@ game = Game(
         "art-test-level": ArtTestLevel,
         "next-test-level": NextTestLevel,
     },
-    initial_level="art-test-level",
+    initial_level="next-test-level"#"art-test-level",
 )

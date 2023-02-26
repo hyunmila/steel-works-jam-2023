@@ -18,3 +18,6 @@ class Camera:
         oy = self.position[1] - viewport_size[1] / 2
 
         self.viewport.blit(surface, (offset[0] - ox, offset[1] - oy))
+
+    def blit_no_resize(self, surface, offset):
+        self.viewport.blit(surface, (offset[0], offset[1]))
