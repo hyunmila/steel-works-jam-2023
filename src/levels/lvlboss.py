@@ -17,7 +17,7 @@ class BossLevel:
         self.boss_music = Sound("res/boss_loop.wav", loop=True, volume=0.5)
         self.boss_music.play()
 
-        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("boss", Vector2(12, 5))
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
         # exit : Vector2(4, 8)
         self.game.player.position = Vector2(0, 8)

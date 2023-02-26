@@ -430,46 +430,6 @@ class Sorcerer(Enemy):
             # print("x2", self.position.x)
             self.vel.x = 0
 
-    # def update(self, player_pos, camera: Camera, dt):
-    #     flag = False
-    #     pressed_keys = pygame.key.get_pressed()
-
-    #     if pressed_keys[pygame.K_k]:
-    #         flag = True
-    #     if flag:
-    #         self.bullets.append(
-    #             Bullet(
-    #                 "res/plant.png",
-    #                 self.rect,
-    #                 Vec2(2, 2),
-    #                 Vec2(0, 1),
-    #                 self.collision_map,
-    #             )
-    #         )
-    #     new_bullets = []
-
-    #     for bullet in self.bullets:
-    #         if bullet.update(camera, dt):
-    #             new_bullets.append(bullet)
-    #     self.bullets = new_bullets
-
-    #     self.ticks += dt
-    #     if self.ticks > 2:
-    #         self.shoot(player_pos)
-    #         self.ticks = 0
-    #     f = 0.2
-
-    #     old_vel = self.vel
-
-    #     if 3 < self.activate(player_pos) < self.dist:
-    #         self.move(player_pos, dt)
-
-    #     new_bullets = []
-
-    #     self.draw(
-    #         camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE)
-    #     )
-    #     self.vel = old_vel
     def update(self, window: Window,  player_pos):
         f = 0.2
         if self.ticks > 0.1:
@@ -532,10 +492,10 @@ class Sorcerer(Enemy):
 boss_img = [
                 pygame.transform.scale(
                     pygame.image.load("res/jola_na_sterydach.png").convert_alpha(),
-                    (PIXEL_SIZE * 4, PIXEL_SIZE * 4),
+                    (PIXEL_SIZE* 4, PIXEL_SIZE*4),
                 ),
             ]
-
+plant = pygame.image.load("res/plant.png").convert_alpha()
 class Boss():
     def __init__(self, pos: Vec2, collision_map: Map):
         self.position = pos
@@ -543,7 +503,7 @@ class Boss():
         self.vel = Vec2(0.0, 0.0)
         self.dist = 10
         self.collision_map = collision_map
-        self.health = 20
+        self.health = 15
         self.ticks = 2
         self.max_distance = 2
         self.bullet_manager = BulletManager(collision_map)
@@ -599,10 +559,10 @@ class Boss():
                 self.position.x = lerp(self.position.x, self.position.x + 
                                        ( - vel.x * dt), fx)
 
-        if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x, self.position.y, 4, 4)
-        ):
-            self.position.x = old_position.x
+        # if self.collision_map.rect_collision(
+        #     bbox=BBox(self.position.x, self.position.y, 4, 4)
+        # ):
+        #     self.position.x = old_position.x
     
     def can_shoot(self, player_pos):
         if self.distance(player_pos) < self.dist - 1:
@@ -633,7 +593,7 @@ class Boss():
         if player_pos.x > self.position.x: self.facing = "right"
         else: self.facing = "left"
         
-        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 0.3:
+        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 0.1:
             self.shoot_ticks = 0
             direction = Vec2(player_pos - self.position).normalize()
             self.bullet_manager.add_bullet(self.position + Vec2(1, 1), direction)
@@ -645,12 +605,13 @@ class Boss():
         img = boss_img[self.animidx % len(boss_img)]
         if self.facing == "right":
             img = pygame.transform.flip(img, True, False)
+
         camera.blit(img, self.position * PIXEL_SIZE)
 
     def getRect(self):
         return pygame.Rect(self.position.x * PIXEL_SIZE, 
                            self.position.y * PIXEL_SIZE,
-                           PIXEL_SIZE, PIXEL_SIZE)
+                           64 * 4, 64 * 4)
 
 
     def attack(self, possition : Vec2) -> bool:
