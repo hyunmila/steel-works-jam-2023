@@ -11,6 +11,10 @@ class NextTestLevel:
         self.game = game
 
         self.game.map.load_from_file("res/next-test-level-map.png")
+        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
+        
+
 
         if prev_level_id == "art-test-level":
             self.game.player.position = Vector2(0, 10.9)
