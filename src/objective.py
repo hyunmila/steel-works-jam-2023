@@ -7,12 +7,11 @@ class Objective:
         self.kill_all = kill_all
 
     def satisfied(self, player, enemies):
-        
         player_items = player.weapon.all_items()
 
-        for item, count in self.items:
+        for item, count in self.items.items():
             if item in player_items:
-                if count < player_items[item]:
+                if player_items[item] < count:
                     return False
             else:
                 return False

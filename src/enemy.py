@@ -14,6 +14,8 @@ from core.animation import Animation
 from components.bullet import BulletManager, Bullet
 from components.explosion import ExplosionManager
 
+from core.music import Sound
+
 
 class Box:
     def __init__(self, pos, size):
@@ -76,6 +78,8 @@ class Enemy(metaclass=abc.ABCMeta):
         self.t_start = perf_counter()
         self.t_stop = perf_counter()
         self.inertia = 1
+        self.hit_sound = Sound("res/punch.mp3")
+        self.dead_sound = Sound("res/monsterkill.mp3")
 
     def activate(self, pos):
         return Vec2(pos.x - self.rect.x, pos.y - self.rect.y).length()
@@ -274,8 +278,12 @@ class Enemy(metaclass=abc.ABCMeta):
             if self.getRect().colliderect(tmp_rect):
                 bullet_meneger.remove_bullet(bullet)
                 self.health -= 1
+
                 if self.is_dead():
+                    self.dead_sound.play()
                     return self
+                else:
+                    self.hit_sound.play()
         return None
 
     def getRect(self):
@@ -297,6 +305,7 @@ class Warrior(Enemy):
     def __init__(self, pos: Vec2, collision_map: Map):
         super().__init__(pos, collision_map)
         self.cooldown = 2
+        self.health = 3
 
     def update(self, window: Window, player_pos):
         f = 0.2
@@ -341,6 +350,7 @@ class Sorcerer(Enemy):
         self.cooldown = 1
         self.animidx = 0
         self.shoot_ticks = 0
+        self.health = 2
 
     def shoot(self, player_pos):
         if self.can_shoot(player_pos):
@@ -735,6 +745,10 @@ class EnemyManager:
         self._classes = {"warrior": Warrior, "sorcerer": Sorcerer, "boss": Boss}
         # self._animations = {"warrior" :  warrior_anim, "sorcerer": sorcer_anim} # fill with path
         self._animations = {"warrior": warrior_anim}  # fill with path
+        self.explosion_manager = ExplosionManager()
+        self.bullets_manager = BulletManager(
+            collision_map, explosion_manager=self.explosion_manager
+        )
 
     def get_enemies(self) -> List[Enemy]:
         return self._enemies
@@ -748,6 +762,17 @@ class EnemyManager:
     def clear(self):
         self._enemies = []
 
+    def attack(self, possition):
+        bullets = self.bullets_manager.get_bullets()
+        for bullet in bullets:
+            tmp_vec = Vec2(
+                bullet.position.x - possition.x, bullet.position.y - possition.y
+            )
+            if tmp_vec.length() < 0.2:
+                self.bullets_manager.remove_bullet(bullet)
+                return True
+        return False
+
     def update(self, window: Window, player_pos: Vec2, bullets_manager: BulletManager):
         warrior_anim.update(window)
         for enemy in self._enemies:
@@ -758,12 +783,23 @@ class EnemyManager:
             enemy.update(window, player_pos)
 
             if to_delete is not None:
+                to_delete: Enemy
+
+                n = 10
+                dir = Vec2(1, 0)
+                for _ in range(n):
+                    self.bullets_manager.add_bullet(to_delete.rect, dir)
+                    dir = dir.rotate(360 / n)
                 self.remove_enemy(to_delete)
+        self.bullets_manager.update(window)
+        self.explosion_manager.update(window)
 
     def draw(self, camera: Camera):
         for enemy in self._enemies:
             # enemy.draw(camera, self._animations[enemy.get_class()])
             enemy.draw(camera)
+        self.bullets_manager.draw(camera)
+        self.explosion_manager.draw(camera)
 
 
 enemies = []
