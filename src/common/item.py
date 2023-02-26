@@ -12,8 +12,8 @@ class ItemType(IntEnum):
 class Item:
     img: pygame.Surface
     name: str
-    item_type: ItemType
-    weight: float
+    item_type: ItemType = ItemType.GUN
+    weight: float = 1.0
     shape: Tuple[int, int] = (1, 1)
     ammo_type: str = ""
     color: Tuple[float, float, float] = (0, 0, 0)
