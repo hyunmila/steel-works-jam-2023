@@ -94,8 +94,16 @@ class Player:
 
     def rotate_weapon(self, window: Window):
         mouse_pos = Vec2(window.get_input().get_mouse_pos())
-        center = Vec2(window._surface.get_width(), window._surface.get_height()) / 2
-        vec = mouse_pos - center
+
+        w_scale = 1280/window._surface.get_width()
+        h_scale = 720/window._surface.get_height()
+
+        mouse_pos.x *= w_scale
+        mouse_pos.y *= h_scale
+
+        player_on_screen_pos = (Vec2(1280, 720)/2 - self.follow_camera.position)+self.position*PIXEL_SIZE
+
+        vec = mouse_pos - player_on_screen_pos
         self.weapon_rotation = atan2(vec.y, vec.x) * 180 / pi
 
     def update(self, window: Window):
