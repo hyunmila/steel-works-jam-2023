@@ -5,7 +5,7 @@ GOAL: Collect 2 ultracans
 It's year 2051. Right after graduating, you got an internship offer in a market leading company.
 Soon after joining, you realised that your boss is quite eccentric wealthy man...
 
-#2 note
+#2 note 
 Company is associated with bioengineering, so you kinda expected this boring job in some kind of old laboratory.
 However, instead of that, you got the office job with sweet Mrs Jola and lots of stressing tasks from your boss...
 
