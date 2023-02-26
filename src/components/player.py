@@ -165,7 +165,7 @@ class Player:
                 else:
                     self.is_jumping = False
 
-                if window.get_input().is_action_just_pressed("fire"):
+                if window.get_input().is_action_just_pressed("fire") and self.weapon.is_active():
                     dir = Vec2(1, 0).rotate(self.weapon_rotation)
                     pos = self.position + dir * 0.5
                     self.bullet_manager.add_bullet(position=pos, direction=dir)
