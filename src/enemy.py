@@ -722,7 +722,7 @@ class EnemyManager:
         for enemy in self._enemies:
             # enemy.draw(camera, self._animations[enemy.get_class()])
             enemy.draw(camera)
-            self.bullets_manager.draw(camera)
+        self.bullets_manager.draw(camera)
 
 
 enemies = []
