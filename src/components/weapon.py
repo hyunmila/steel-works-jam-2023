@@ -114,21 +114,25 @@ class WeaponManager:
             stack.append((i, j - 1))
 
         return count == tile_count
+    
+    def is_active(self):
+        return len(self.items) > 0
 
     def will_blow_up(self):
-        ammos = [x for x, _ in self.items if x.item_type == ItemType.AMMO]
-        weapons = [x for x, _ in self.items if x.item_type == ItemType.GUN]
+        # ammos = [x for x, _ in self.items if x.item_type == ItemType.AMMO]
+        # weapons = [x for x, _ in self.items if x.item_type == ItemType.GUN]
 
-        for weapon in weapons:
-            to_pop = None
-            for i, ammo in enumerate(ammos):
-                if weapon.ammo_type == ammo.name:
-                    to_pop = i
-                    break
-            else:
-                return True
-            ammos.pop(to_pop)
-        return False or not self.is_connected()
+        # for weapon in weapons:
+        #     to_pop = None
+        #     for i, ammo in enumerate(ammos):
+        #         if weapon.ammo_type == ammo.name:
+        #             to_pop = i
+        #             break
+        #     else:
+        #         return True
+        #     ammos.pop(to_pop)
+        # return False or not self.is_connected()
+        return self.is_connected()
 
     def get_weapon_as_surface(self):
         weapon_surface = pygame.Surface(
