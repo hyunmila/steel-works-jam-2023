@@ -42,11 +42,12 @@ DAMGE = 1
 class Enemy(metaclass=abc.ABCMeta):
     def __init__(self, pos: Vec2, collision_map: Map):
         self.rect = pos
+        # self.animation = animation
         self.vel = Vec2(0.0, 0.0)
         self.dist = 5
         self.collision_map = collision_map
         self.health = 3
-        self.ticks = 0
+        self.ticks = 2
         self.is_jumping = False
         self.is_able_to_jump = False
         self.t_start = perf_counter()
@@ -60,6 +61,11 @@ class Enemy(metaclass=abc.ABCMeta):
         return not self.collision_map.get_tile(
             int(pos.x + vec.x), int(pos.y + vec.y)
         ).collision
+    
+    def is_dead(self): # True if enemy is dead
+        if self.health <= 0:
+            return True
+        return False
 
     def move(self, player_pos, dt):
         old_position = self.rect.copy()
@@ -221,11 +227,11 @@ class Enemy(metaclass=abc.ABCMeta):
             self.vel.x = 0
    
     # to update all status about enemy
-    def update(self, player_pos, window: Window, dt):
+    def update(self, window: Window, player_pos):
         pass
 
-    def draw(self, camera: Camera, animation):
-        camera.blit(animation.get_frame(), self.rect * PIXEL_SIZE)
+    def draw(self, camera: Camera):
+        pass
     
     def get_class(self):
         pass
@@ -237,7 +243,14 @@ class Enemy(metaclass=abc.ABCMeta):
         return pygame.Rect(self.rect.x * PIXEL_SIZE, 
                            self.rect.y * PIXEL_SIZE,
                            PIXEL_SIZE, PIXEL_SIZE)
+    
+    def attack(self) -> bool: # True - gdy atak dosięga gracza, False - w przeciwnym przypadku
+        pass
 
+WARRIOR_IMG = pygame.image.load("res/wojownik-sheet.png")
+WARRIOR_IMG = pygame.transform.scale(WARRIOR_IMG, (64 * 2, 64))
+warrior_anim = Animation(WARRIOR_IMG,
+                          cols= 2, frame_rate= 0.5)
 class Warrior(Enemy):
     # def __init__(self, path, pos, dist, vel, collision_map):
     #     super().__init__(path, pos, dist, vel, collision_map)
@@ -245,26 +258,23 @@ class Warrior(Enemy):
         # self.cooldown = cooldown
     def __init__(self, pos: Vec2, collision_map: Map):
         super().__init__(pos, collision_map)
+        self.cooldown = 2
 
-    def update(self, window: Window, animation : Animation,  player_pos):
+    def update(self, window: Window,  player_pos):
         f = 0.2
         old_vel = self.vel
+        self.ticks += window.get_delta()
 
         if 0.7 < self.activate(player_pos) < self.dist:
             self.move(player_pos, window.get_delta())
         else:
             self.gravity(window.get_delta())
         
-        animation.update(window)
+        warrior_anim.update(window)
 
     def get_class(self) -> str:
         return "warrior"
     
-    def is_dead(self) -> bool:
-        if self.health <= 0:
-            return True
-        return False
-
     def combat(self, bullet_meneger : BulletManager) -> bool:
 
         bullets = bullet_meneger.get_bullets()
@@ -273,16 +283,25 @@ class Warrior(Enemy):
 
             tmp_rect = pygame.Rect(bullet_box.x * PIXEL_SIZE, bullet_box.y * PIXEL_SIZE
                                    , bullet_box.w * PIXEL_SIZE, bullet_box.h * PIXEL_SIZE)
-            print(self.getRect(), tmp_rect)
+
             if (self.getRect().colliderect(tmp_rect)):
                 bullet_meneger.remove_bullet(bullet)
-                print("OK")
                 self.health -= 1
                 if self.is_dead():
                     return self
         return None
 
-
+    def attack(self, possition : Vec2): # possition in meters ( has to multiply for 64)
+        tmp_vec = Vec2(possition.x - self.rect.x, possition.y - self.rect.y)
+        if self.ticks < self.cooldown: return False
+        if tmp_vec.length() < 0.7:
+            self.ticks = 0
+            return True
+        return False
+    
+    def draw(self, camera: Camera):
+        img = warrior_anim.get_frame()
+        camera.blit(img, self.rect * PIXEL_SIZE)
 
 class Sorcerer(Enemy):
     def __init__(self, pos: Vec2, collision_map: Map):
@@ -342,8 +361,7 @@ class Sorcerer(Enemy):
         return "sorcerer"
 
 
-warrior_anim = Animation(pygame.transform.scale(pygame.image.load("res/wojownik-sheet.png"), (64 * 2, 64)),
-                          cols= 2, frame_rate= 8)
+
 # sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
 #                           , cols=-1, frame_rate= 8)
 class EnemyMenager:
@@ -366,14 +384,18 @@ class EnemyMenager:
     def update(self, window : Window, player_pos : Vec2, bullets_meneger : BulletManager):
         for enemy in self._enemies:
             to_delete = enemy.combat(bullets_meneger)
-            enemy.update(window, self._animations[enemy.get_class()], player_pos)
+            # tmp = self._animations[enemy.get_class()]
+            # enemy.update(window, self._animations[enemy.get_class()], player_pos)
+            # enemy.update(window, tmp, player_pos)
+            enemy.update(window, player_pos)
             
             if to_delete is not None:
                 self.remove_enemy(to_delete)
 
     def draw(self, camera : Camera):
         for enemy in self._enemies:
-            enemy.draw(camera, self._animations[enemy.get_class()])
+            # enemy.draw(camera, self._animations[enemy.get_class()])
+            enemy.draw(camera)
 
 
 enemies = []

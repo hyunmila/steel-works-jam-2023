@@ -50,3 +50,6 @@ class Animation:
         self._frame += 1
         if self._frame >= self._frame_count:
             self._frame = 0
+
+    def __hash__(self) -> int:
+        return hash(id(self))

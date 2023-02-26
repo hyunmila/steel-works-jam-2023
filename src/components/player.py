@@ -15,6 +15,7 @@ from numpy import sign
 from components.map import Map
 from components.bullet import BulletManager
 from components.dialog_box import DialogBox
+from enemy import EnemyMenager, Enemy
 
 PIXEL_SIZE = 64
 
@@ -63,6 +64,11 @@ class Player:
             "standing": [
                 pygame.transform.scale(
                     pygame.image.load("res/player.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                )
+            ],
+            "dead":[
+                pygame.transform.scale(
+                    pygame.image.load("res/player_dead_onspot.png"), (PIXEL_SIZE, PIXEL_SIZE)
                 )
             ],
         }
@@ -305,3 +311,17 @@ class Player:
             self.max_hp = 5
         else:
             self.max_hp = 3
+
+    def is_dead(self):
+        if self.hp <= 0:
+            return True
+        return False 
+
+    def combat(self, enemy_meneger : EnemyMenager, ):
+        enemies = enemy_meneger.get_enemies()
+        for enemy in enemies:
+            if enemy.attack(self.position):
+                self.hp -= 1
+            if self.is_dead():
+                print("MARTWY KORKOCIĄG")
+            

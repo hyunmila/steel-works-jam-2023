@@ -195,7 +195,9 @@ spatial_text_box.offset = (100, 100)
 #     "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map ) 
 
 enemy_manager.add_enemy("warrior", Vec2(9, 12))
-enemy_manager.add_enemy("warrior", Vec2(9, 12))
+enemy_manager.add_enemy("warrior", Vec2(10, 12))
+enemy_manager.add_enemy("warrior", Vec2(11, 12))
+enemy_manager.add_enemy("warrior", Vec2(12, 12))
 # enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
 
 parallax = Parallax(
@@ -215,6 +217,7 @@ while window.is_open():
     weapon_manager.update(window=window)
     player.update(window=window)
     enemy_manager.update(window, player.position, bullet_manager)
+    player.combat(enemy_manager)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
     bullet_manager.update(window=window)
     # dialog_box.update(window=window)
