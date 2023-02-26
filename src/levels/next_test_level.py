@@ -37,7 +37,7 @@ class NextTestLevel:
 
     def update(self):
         pass
-        # self.trigger.update(window=self.game.window)
+        self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)

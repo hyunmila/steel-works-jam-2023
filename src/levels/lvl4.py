@@ -12,7 +12,7 @@ class FourthLevel:
 
         self.game.map.load_from_file("res/level4.png")
 
-        self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("sorcerer", Vector2(11, 90))
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
         # exit : Vector2(17, 18)
         self.game.player.position = Vector2(11, 106)
@@ -32,7 +32,7 @@ class FourthLevel:
 
     def update(self):
         pass
-        # self.trigger.update(window=self.game.window)
+        self.trigger.update(window=self.game.window)
 
     def draw_bg(self):
         self.level_art.draw(camera=self.game.camera)
