@@ -8,6 +8,7 @@ from components.map import Map
 from core.math import BBox
 
 from core.animation import Animation
+from components.explosion import ExplosionManager
 
 
 pygame.init()
@@ -53,32 +54,35 @@ class Bullet:
         self.bullet_anim.update(window=window)
 
     def draw(self, camera: Camera) -> None:
-        img = self.bullet_anim.get_frame()
+        img = self.bullet_anim.rasterize()
 
         angle = -math.atan2(self._direction.y, self._direction.x) * 180 / math.pi - 90
         rotated_img = pygame.transform.rotate(img, angle)
 
         camera.blit(rotated_img, self.position * PIXELS_IN_UNIT)
-    
+
     def getRect(self):
         return BBox(self.position.x + 0.3, self.position.y + 0.3, 0.4, 0.4)
 
+
 class BulletManager:
-    def __init__(self, collision_map: Map):
+    def __init__(self, collision_map: Map, explosion_manager: ExplosionManager):
         self._bullets = []
         self.collision_map = collision_map
+        self.explosion_manager = explosion_manager
 
     def get_bullets(self) -> List[Bullet]:
         return self._bullets
 
     def add_bullet(self, position: Vector2, direction: Vector2) -> None:
         def on_collision():
-            self._bullets.remove(bullet)
+            self.remove_bullet(bullet)
 
         bullet = Bullet(position, direction, self.collision_map, on_collision)
         self._bullets.append(bullet)
 
     def remove_bullet(self, bullet: Bullet) -> None:
+        self.explosion_manager.play_explosion(bullet.position)
         self._bullets.remove(bullet)
 
     def update(self, window: Window) -> None:

@@ -16,6 +16,7 @@ from core.viewport import Viewport
 from core.window import Window
 from levels.npc_preset import get_npc
 from levels.item_preset import get_item
+from components.explosion import ExplosionManager
 
 
 class Game:
@@ -58,7 +59,10 @@ class Game:
         self._init_map()
 
         self.weapon_manager = WeaponManager()
-        self.bullet_manager = BulletManager(collision_map=self.map)
+        self.explosion_manager = ExplosionManager()
+        self.bullet_manager = BulletManager(
+            collision_map=self.map, explosion_manager=self.explosion_manager
+        )
         self.enemy_manager = EnemyManager(collision_map=self.map)
 
         self.player = Player(
@@ -139,7 +143,7 @@ class Game:
                 #             "AAAaaaaAAAaaaaAAAaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaA",
                 #             "turbosprezarka",
                 #         ],
-                    # ),
+                # ),
                 # ),
             },
             tile_size=64,
@@ -155,6 +159,7 @@ class Game:
         )  # TODO: those extra arguments should be provided during initialization
         self.player.update(window=self.window)
         self.player.combat(self.enemy_manager)
+        self.explosion_manager.update(window=self.window)
         self.bullet_manager.update(window=self.window)
         self.dialog_box.update(window=self.window)
         self.weapon_manager.update(window=self.window)
@@ -172,6 +177,7 @@ class Game:
         self.enemy_manager.draw(camera=self.camera)
         self.player.draw(camera=self.camera, ui_camera=self.ui_camera)
         self.bullet_manager.draw(camera=self.camera)
+        self.explosion_manager.draw(camera=self.camera)
 
         if self._current_level is not None and hasattr(self._current_level, "draw_fg"):
             self._current_level.draw_fg()

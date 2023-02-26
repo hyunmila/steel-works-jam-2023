@@ -98,7 +98,7 @@ class Map:
                 if tile.interactible is not None:
                     camera.blit(
                         pygame.transform.scale(
-                            tile.interactible.animation.get_frame(),
+                            tile.interactible.animation.rasterize(),
                             (self._tile_size, self._tile_size),
                         ),
                         (x * self._tile_size, y * self._tile_size),

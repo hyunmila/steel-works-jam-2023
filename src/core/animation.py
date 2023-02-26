@@ -26,10 +26,16 @@ class Animation:
     def set_frame_count(self, frame_count: int) -> None:
         self._frame_count = min(frame_count, self.cols * self.rows)
 
+    def get_frame_count(self) -> int:
+        return self._frame_count
+
     def set_frame(self, frame: int) -> None:
         self._frame = frame % self._frame_count
 
-    def get_frame(self) -> pygame.Surface:
+    def get_frame(self) -> int:
+        return self._frame
+
+    def rasterize(self) -> pygame.Surface:
         frame_width = self.sheet.get_width() // self.cols
         frame_height = self.sheet.get_height() // self.rows
 

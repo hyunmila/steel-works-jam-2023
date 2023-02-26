@@ -12,6 +12,7 @@ from typing import List
 from time import perf_counter
 from core.animation import Animation
 from components.bullet import BulletManager, Bullet
+from components.explosion import ExplosionManager
 
 
 class Box:
@@ -38,12 +39,21 @@ class Box:
 PIXEL_SIZE = 64
 DAMGE = 1
 # kolizje sprawdzamy w Enemy
-WARRIOR_IMG = pygame.image.load("res/wojownik-sheet.png")
-WARRIOR_IMG = pygame.transform.scale(WARRIOR_IMG, (64 * 2, 64))
-warrior_anim = Animation(WARRIOR_IMG,
-                          cols= 2, frame_rate= 0.5)
 
-sorcerer_img = [
+warrior_img = None
+warrior_anim = None
+sorcerer_img = None
+
+
+class Enemy(metaclass=abc.ABCMeta):
+    def __init__(self, pos: Vec2, collision_map: Map):
+        global warrior_img, warrior_anim, sorcerer_img
+        if warrior_img is None:
+            warrior_img = pygame.image.load("res/wojownik-sheet.png").convert_alpha()
+            warrior_img = pygame.transform.scale(warrior_img, (64 * 2, 64))
+            warrior_anim = Animation(warrior_img, cols=2, frame_rate=0.5)
+
+            sorcerer_img = [
                 pygame.transform.scale(
                     pygame.image.load("res/mutan_mage_ult.png").convert_alpha(),
                     (PIXEL_SIZE, PIXEL_SIZE),
@@ -54,8 +64,6 @@ sorcerer_img = [
                 ),
             ]
 
-class Enemy(metaclass=abc.ABCMeta):
-    def __init__(self, pos: Vec2, collision_map: Map):
         self.rect = pos
         self.facing = "left"
         self.vel = Vec2(0.0, 0.0)
@@ -76,8 +84,8 @@ class Enemy(metaclass=abc.ABCMeta):
         return not self.collision_map.get_tile(
             int(pos.x + vec.x), int(pos.y + vec.y)
         ).collision
-    
-    def is_dead(self): # True if enemy is dead
+
+    def is_dead(self):  # True if enemy is dead
         if self.health <= 0:
             return True
         return False
@@ -247,20 +255,23 @@ class Enemy(metaclass=abc.ABCMeta):
 
     def draw(self, camera: Camera):
         pass
-    
+
     def get_class(self):
         pass
 
-    def combat(self, bullet_meneger : BulletManager) -> bool:
-
+    def combat(self, bullet_meneger: BulletManager) -> bool:
         bullets = bullet_meneger.get_bullets()
         for bullet in bullets:
             bullet_box = bullet.getRect()
 
-            tmp_rect = pygame.Rect(bullet_box.x * PIXEL_SIZE, bullet_box.y * PIXEL_SIZE
-                                   , bullet_box.w * PIXEL_SIZE, bullet_box.h * PIXEL_SIZE)
+            tmp_rect = pygame.Rect(
+                bullet_box.x * PIXEL_SIZE,
+                bullet_box.y * PIXEL_SIZE,
+                bullet_box.w * PIXEL_SIZE,
+                bullet_box.h * PIXEL_SIZE,
+            )
 
-            if (self.getRect().colliderect(tmp_rect)):
+            if self.getRect().colliderect(tmp_rect):
                 bullet_meneger.remove_bullet(bullet)
                 self.health -= 1
                 if self.is_dead():
@@ -268,11 +279,13 @@ class Enemy(metaclass=abc.ABCMeta):
         return None
 
     def getRect(self):
-        return pygame.Rect(self.rect.x * PIXEL_SIZE, 
-                           self.rect.y * PIXEL_SIZE,
-                           PIXEL_SIZE, PIXEL_SIZE)
-    
-    def attack(self, possition) -> bool: # True - gdy atak dosięga gracza, False - w przeciwnym przypadku
+        return pygame.Rect(
+            self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE
+        )
+
+    def attack(
+        self, possition
+    ) -> bool:  # True - gdy atak dosięga gracza, False - w przeciwnym przypadku
         pass
 
 
@@ -285,40 +298,45 @@ class Warrior(Enemy):
         super().__init__(pos, collision_map)
         self.cooldown = 2
 
-    def update(self, window: Window,  player_pos):
+    def update(self, window: Window, player_pos):
         f = 0.2
         old_vel = self.vel
         self.ticks += window.get_delta()
-        if player_pos.x > self.rect.x: self.facing = "right"
-        else: self.facing = "left"
+        if player_pos.x > self.rect.x:
+            self.facing = "right"
+        else:
+            self.facing = "left"
         if 0.7 < self.activate(player_pos) < self.dist:
             self.move(player_pos, window.get_delta())
         else:
             self.gravity(window.get_delta())
-        
 
     def get_class(self) -> str:
         return "warrior"
-    
-    
-    def attack(self, possition : Vec2): # possition in meters ( has to multiply for 64)
+
+    def attack(self, possition: Vec2):  # possition in meters ( has to multiply for 64)
         tmp_vec = Vec2(possition.x - self.rect.x, possition.y - self.rect.y)
-        if self.ticks < self.cooldown: return False
+        if self.ticks < self.cooldown:
+            return False
         if tmp_vec.length() < 0.7:
             self.ticks = 0
             return True
         return False
-    
+
     def draw(self, camera: Camera):
-        img = warrior_anim.get_frame()
+        img = warrior_anim.rasterize()
         if self.facing == "right":
             img = pygame.transform.flip(img, True, False)
         camera.blit(img, self.rect * PIXEL_SIZE)
 
+
 class Sorcerer(Enemy):
     def __init__(self, pos: Vec2, collision_map: Map):
         super().__init__(pos, collision_map)
-        self.bullet_manager = BulletManager(collision_map)
+        self.explosion_manager = ExplosionManager()
+        self.bullet_manager = BulletManager(
+            collision_map, explosion_manager=self.explosion_manager
+        )
         self.flag = True
         self.cooldown = 1
         self.animidx = 0
@@ -327,7 +345,6 @@ class Sorcerer(Enemy):
     def shoot(self, player_pos):
         if self.can_shoot(player_pos):
             print("OK")
-
 
     def move(self, player_pos, dt):
         old_position = self.rect.copy()
@@ -344,10 +361,16 @@ class Sorcerer(Enemy):
         if player_pos.x < self.rect.x:  # warunek dla chodzenia w lewo
             acceleration.x -= x_val
 
-        if not self.is_able_to_shoot(player_pos) and player_pos.y < self.rect.y \
-            and self.collision_map.rect_collision(bbox=BBox(self.rect.x, self.rect.y, 1, 1)) or\
-            self.collision_map.rect_collision(bbox=BBox(self.rect.x, self.rect.y, 1, 1)):  # warunek skoku
-            
+        if (
+            not self.is_able_to_shoot(player_pos)
+            and player_pos.y < self.rect.y
+            and self.collision_map.rect_collision(
+                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            )
+            or self.collision_map.rect_collision(
+                bbox=BBox(self.rect.x, self.rect.y, 1, 1)
+            )
+        ):  # warunek skoku
             if self.is_jumping == False and self.is_able_to_jump == True:
                 self.t_start = perf_counter()
                 self.is_jumping = True
@@ -462,7 +485,7 @@ class Sorcerer(Enemy):
     #         camera, self.image, (self.rect.x * PIXEL_SIZE, self.rect.y * PIXEL_SIZE)
     #     )
     #     self.vel = old_vel
-    def update(self, window: Window,  player_pos):
+    def update(self, window: Window, player_pos):
         f = 0.2
         if self.ticks > 0.1:
             self.animidx += 1
@@ -471,65 +494,85 @@ class Sorcerer(Enemy):
         self.ticks += window.get_delta()
         self.shoot_ticks += window.get_delta()
 
-        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 1:
+        if (
+            self.can_shoot(player_pos)
+            and self.is_able_to_shoot(player_pos)
+            and self.shoot_ticks > 1
+        ):
             self.shoot_ticks = 0
             direction = Vec2(player_pos - self.rect).normalize()
             self.bullet_manager.add_bullet(self.rect, direction)
 
         self.bullet_manager.update(window)
+        self.explosion_manager.update(window)
 
-        if player_pos.x > self.rect.x: self.facing = "right"
-        else: self.facing = "left"
-
+        if player_pos.x > self.rect.x:
+            self.facing = "right"
+        else:
+            self.facing = "left"
 
         if 0.7 < self.activate(player_pos) < self.dist:
             self.move(player_pos, window.get_delta())
         else:
             self.gravity(window.get_delta())
-        
+
     def can_shoot(self, player_pos):
         if self.activate(player_pos) < self.dist - 1:
             return True
         return False
 
-    def is_able_to_shoot(self, player_pos) -> bool: # można przyjąć jako wiąze światła - sprawdzanie czy dociera do celu jakim jest player_pos
+    def is_able_to_shoot(
+        self, player_pos
+    ) -> (
+        bool
+    ):  # można przyjąć jako wiąze światła - sprawdzanie czy dociera do celu jakim jest player_pos
         vect = Vec2(player_pos.x - self.rect.x, player_pos.y - self.rect.y)
-        sample_vect = Vec2(vect.x/50, vect.y/50)
+        sample_vect = Vec2(vect.x / 50, vect.y / 50)
         samples = [self.rect + sample_vect * i for i in range(50)]
         for sample in samples:
             if self.collision_map.rect_collision(
                 bbox=BBox(sample.x, sample.y, 0.05, 0.05)
-            ): return False     
+            ):
+                return False
         return True
-    
+
     def get_class(self):
         return "sorcerer"
 
     def draw(self, camera: Camera):
         self.bullet_manager.draw(camera)
+        self.explosion_manager.draw(camera)
         img = sorcerer_img[self.animidx % len(sorcerer_img)]
         if self.facing == "right":
             img = pygame.transform.flip(img, True, False)
         camera.blit(img, self.rect * PIXEL_SIZE)
 
-    def attack(self, possition : Vec2) -> bool:
+    def attack(self, possition: Vec2) -> bool:
         bullets = self.bullet_manager.get_bullets()
         for bullet in bullets:
-            tmp_vec = Vec2(bullet.position.x - possition.x, bullet.position.y - possition.y)
+            tmp_vec = Vec2(
+                bullet.position.x - possition.x, bullet.position.y - possition.y
+            )
             if tmp_vec.length() < 0.2:
                 self.bullet_manager.remove_bullet(bullet)
                 return True
         return False
 
-boss_img = [
+
+boss_img = None
+
+
+class Boss:
+    def __init__(self, pos: Vec2, collision_map: Map):
+        global boss_img
+        if boss_img is None:
+            boss_img = [
                 pygame.transform.scale(
                     pygame.image.load("res/jola_na_sterydach.png").convert_alpha(),
                     (PIXEL_SIZE * 4, PIXEL_SIZE * 4),
                 ),
             ]
 
-class Boss():
-    def __init__(self, pos: Vec2, collision_map: Map):
         self.position = pos
         self.facing = "left"
         self.vel = Vec2(0.0, 0.0)
@@ -538,32 +581,38 @@ class Boss():
         self.health = 20
         self.ticks = 2
         self.max_distance = 2
-        self.bullet_manager = BulletManager(collision_map)
+        self.explosion_manager = ExplosionManager()
+        self.bullet_manager = BulletManager(collision_map, self.explosion_manager)
         self.animidx = 0
         self.shoot_ticks = 0
         self.movement_ticks = 0
 
-    def is_dead(self): # True if enemy is dead
+    def is_dead(self):  # True if enemy is dead
         if self.health <= 0:
             return True
         return False
-    
+
     def get_class(self):
         return "boss"
 
     def distance(self, pos):
         return Vec2(pos.x - self.position.x, pos.y - self.position.y).length()
 
-    def combat(self, bullet_meneger : BulletManager) -> bool: # przyjmowanie damage na twarz
-
+    def combat(
+        self, bullet_meneger: BulletManager
+    ) -> bool:  # przyjmowanie damage na twarz
         bullets = bullet_meneger.get_bullets()
         for bullet in bullets:
             bullet_box = bullet.getRect()
 
-            tmp_rect = pygame.Rect(bullet_box.x * PIXEL_SIZE, bullet_box.y * PIXEL_SIZE
-                                   , bullet_box.w * PIXEL_SIZE, bullet_box.h * PIXEL_SIZE)
+            tmp_rect = pygame.Rect(
+                bullet_box.x * PIXEL_SIZE,
+                bullet_box.y * PIXEL_SIZE,
+                bullet_box.w * PIXEL_SIZE,
+                bullet_box.h * PIXEL_SIZE,
+            )
 
-            if (self.getRect().colliderect(tmp_rect)):
+            if self.getRect().colliderect(tmp_rect):
                 bullet_meneger.remove_bullet(bullet)
                 self.health -= 1
                 if self.is_dead():
@@ -576,42 +625,52 @@ class Boss():
         vel = Vec2(2, 2)
         fx = 0.70
 
-        if self.movement_ticks < 1: self.position.y = lerp(self.position.y, self.position.y + 
-                                       ( (- vel.y) * dt), fx)
-        elif self.movement_ticks < 2: self.position.y = lerp(self.position.y, self.position.y + 
-                                       ( vel.y * dt), fx)
-        else: self.movement_ticks = 0
+        if self.movement_ticks < 1:
+            self.position.y = lerp(
+                self.position.y, self.position.y + ((-vel.y) * dt), fx
+            )
+        elif self.movement_ticks < 2:
+            self.position.y = lerp(self.position.y, self.position.y + (vel.y * dt), fx)
+        else:
+            self.movement_ticks = 0
         # def lerp(a, b, t):
         #   return a + t * (b - a)
         if self.distance(player_pos) > self.max_distance:
             if player_pos.x > self.position.x:
-                self.position.x = lerp(self.position.x, self.position.x + 
-                                       (vel.x * dt), fx)
-            else: 
-                self.position.x = lerp(self.position.x, self.position.x + 
-                                       ( - vel.x * dt), fx)
+                self.position.x = lerp(
+                    self.position.x, self.position.x + (vel.x * dt), fx
+                )
+            else:
+                self.position.x = lerp(
+                    self.position.x, self.position.x + (-vel.x * dt), fx
+                )
 
         if self.collision_map.rect_collision(
             bbox=BBox(self.position.x, self.position.y, 4, 4)
         ):
             self.position.x = old_position.x
-    
+
     def can_shoot(self, player_pos):
         if self.distance(player_pos) < self.dist - 1:
             return True
         return False
 
-    def is_able_to_shoot(self, player_pos) -> bool: # można przyjąć jako wiąze światła - sprawdzanie czy dociera do celu jakim jest player_pos
+    def is_able_to_shoot(
+        self, player_pos
+    ) -> (
+        bool
+    ):  # można przyjąć jako wiąze światła - sprawdzanie czy dociera do celu jakim jest player_pos
         vect = Vec2(player_pos.x - self.position.x, player_pos.y - self.position.y)
-        sample_vect = Vec2(vect.x/50, vect.y/50)
+        sample_vect = Vec2(vect.x / 50, vect.y / 50)
         samples = [self.position + sample_vect * i for i in range(50)]
         for sample in samples:
             if self.collision_map.rect_collision(
                 bbox=BBox(sample.x, sample.y, 0.05, 0.05)
-            ): return False     
+            ):
+                return False
         return True
-        
-    def update(self, window : Window, player_pos):
+
+    def update(self, window: Window, player_pos):
         self.ticks += window.get_delta()
         self.shoot_ticks += window.get_delta()
         self.movement_ticks += window.get_delta()
@@ -621,45 +680,59 @@ class Boss():
         if self.ticks > 0.1:
             self.animidx += 1
             self.ticks = 0
-            
-        if player_pos.x > self.position.x: self.facing = "right"
-        else: self.facing = "left"
-        
-        if self.can_shoot(player_pos) and self.is_able_to_shoot(player_pos) and self.shoot_ticks > 0.3:
+
+        if player_pos.x > self.position.x:
+            self.facing = "right"
+        else:
+            self.facing = "left"
+
+        if (
+            self.can_shoot(player_pos)
+            and self.is_able_to_shoot(player_pos)
+            and self.shoot_ticks > 0.3
+        ):
             self.shoot_ticks = 0
             direction = Vec2(player_pos - self.position).normalize()
             self.bullet_manager.add_bullet(self.position + Vec2(1, 1), direction)
 
         self.bullet_manager.update(window)
+        self.explosion_manager.update(window)
 
-    def draw(self, camera : Camera):
+    def draw(self, camera: Camera):
         self.bullet_manager.draw(camera)
+        self.explosion_manager.draw(camera)
         img = boss_img[self.animidx % len(boss_img)]
         if self.facing == "right":
             img = pygame.transform.flip(img, True, False)
         camera.blit(img, self.position * PIXEL_SIZE)
 
     def getRect(self):
-        return pygame.Rect(self.position.x * PIXEL_SIZE, 
-                           self.position.y * PIXEL_SIZE,
-                           PIXEL_SIZE, PIXEL_SIZE)
+        return pygame.Rect(
+            self.position.x * PIXEL_SIZE,
+            self.position.y * PIXEL_SIZE,
+            PIXEL_SIZE,
+            PIXEL_SIZE,
+        )
 
-
-    def attack(self, possition : Vec2) -> bool:
+    def attack(self, possition: Vec2) -> bool:
         bullets = self.bullet_manager.get_bullets()
         for bullet in bullets:
-            tmp_vec = Vec2(bullet.position.x - possition.x, bullet.position.y - possition.y)
+            tmp_vec = Vec2(
+                bullet.position.x - possition.x, bullet.position.y - possition.y
+            )
             if tmp_vec.length() < 0.2:
                 self.bullet_manager.remove_bullet(bullet)
                 return True
         return False
+
+
 # sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
 #                           , cols=-1, frame_rate= 8)
 class EnemyManager:
     def __init__(self, collision_map: Map):
         self._enemies = []
         self.collision_map = collision_map
-        self._classes = {"warrior": Warrior, "sorcerer": Sorcerer, "boss" : Boss}
+        self._classes = {"warrior": Warrior, "sorcerer": Sorcerer, "boss": Boss}
         # self._animations = {"warrior" :  warrior_anim, "sorcerer": sorcer_anim} # fill with path
         self._animations = {"warrior": warrior_anim}  # fill with path
 
@@ -683,10 +756,9 @@ class EnemyManager:
             # enemy.update(window, self._animations[enemy.get_class()], player_pos)
             # enemy.update(window, tmp, player_pos)
             enemy.update(window, player_pos)
-            
+
             if to_delete is not None:
                 self.remove_enemy(to_delete)
-        
 
     def draw(self, camera: Camera):
         for enemy in self._enemies:
