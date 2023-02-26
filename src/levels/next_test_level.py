@@ -10,28 +10,17 @@ class NextTestLevel:
     def open(self, game: Game, prev_level_id: str) -> None:
         self.game = game
 
-        self.game.map.load_from_file("res/boss.png")
-        # self.game.map.load_from_file("res/art-test-level-map.png")
-        # self.game.map.load_from_file("res/next-test-level-map.png.png")
-        # self.game.map.load_from_file("res/level3.png")
-        # self.game.map.load_from_file("res/level7.png")
-        # self.game.map.load_from_file("res/boss.png")
-
-
+        self.game.map.load_from_file("res/level4.png")
         self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
-        # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
-        # lvl 1 : Vector2(1, 8)
-        # lvl 2 : Vector2(2, 11)
-        # lvl 3 : Vector2(7, 37)
-        # lvl 4 : 
-        # lvl 7 : Vector2(0, 8)
-        # boss : Vector2(0, 8)
-        self.game.player.position = Vector2(0, 8)
+        self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
+        self.game.enemy_manager.add_enemy("warrior", Vector2(11, 100))
+        
+        self.game.player.position = Vector2(11, 106)
         self.game.camera.position = (
             self.game.player.position * self.game.map.get_tile_size()
         )
 
-        self.level_art = Sprite(path="res/boss_resized.png", scale=4)
+        self.level_art = Sprite(path="res/level4_graphics.png", scale=4)
         # self.level_art = Sprite(path="res/art-test-level-art.png", scale=4)
         # self.level_art = Sprite(path="res/next-test-level-art.png", scale=4)
         # self.level_art = Sprite(path="res/level3_resized.png", scale=4)

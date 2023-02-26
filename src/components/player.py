@@ -78,6 +78,12 @@ class Player:
                     (PIXEL_SIZE, PIXEL_SIZE),
                 )
             ],
+            "dead": [
+                pygame.transform.scale(
+                    pygame.image.load("res/player_dead_onspot.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
+                )
+            ],
         }
         self.facing = "right"
         # self.hp = 10
@@ -108,7 +114,8 @@ class Player:
         self.weapon_rotation = atan2(vec.y, vec.x) * 180 / pi
 
     def update(self, window: Window):
-        self.rotate_weapon(window)
+        if not self.is_dead():
+            self.rotate_weapon(window)
         # self.inertia = max(1.0, self.weapon.get_weight()
 
         self.collided_y = False
@@ -123,116 +130,116 @@ class Player:
         # # print(f"self.is_able_to_jump={self.is_able_to_jump}")
 
         acceleration = Vec2(0.0, 30)
+        if not self.is_dead():
+            if window.get_input().is_action_just_pressed("interact"):
+                npc = self.collision_map.interaction_collision(bbox=self.get_bbox())
+                if npc is not None:
+                    self.dialog_box = npc.interact()
 
-        if window.get_input().is_action_just_pressed("interact"):
-            npc = self.collision_map.interaction_collision(bbox=self.get_bbox())
-            if npc is not None:
-                self.dialog_box = npc.interact()
+            if not self.dialog_box.is_shown():
+                if window.get_input().is_action_pressed("right"):
+                    acceleration.x += x_val
 
-        if not self.dialog_box.is_shown():
-            if window.get_input().is_action_pressed("right"):
-                acceleration.x += x_val
+                if window.get_input().is_action_pressed("left"):
+                    acceleration.x -= x_val
 
-            if window.get_input().is_action_pressed("left"):
-                acceleration.x -= x_val
-
-            if window.get_input().is_action_pressed("jump"):
-                # if pressed_keys[pygame.K_w]:
-                if self.is_jumping == False and self.is_able_to_jump == True:
-                    self.t_start = perf_counter()
-                    self.is_jumping = True
-                    self.is_able_to_jump = False
-                if self.is_jumping == True:
-                    self.t_stop = perf_counter()
-                    if (self.t_stop - self.t_start) <= 0.3:
-                        factor = (self.t_stop - self.t_start) * 3
-                        self.velocity.y = -13
-                        # print(self.velocity)
-                        # acceleration.y = -30*(3.5-factor)
-                    else:
-                        self.is_jumping = False
+                if window.get_input().is_action_pressed("jump"):
+                    # if pressed_keys[pygame.K_w]:
+                    if self.is_jumping == False and self.is_able_to_jump == True:
+                        self.t_start = perf_counter()
+                        self.is_jumping = True
                         self.is_able_to_jump = False
+                    if self.is_jumping == True:
+                        self.t_stop = perf_counter()
+                        if (self.t_stop - self.t_start) <= 0.3:
+                            factor = (self.t_stop - self.t_start) * 3
+                            self.velocity.y = -13
+                            # print(self.velocity)
+                            # acceleration.y = -30*(3.5-factor)
+                        else:
+                            self.is_jumping = False
+                            self.is_able_to_jump = False
+                else:
+                    self.is_jumping = False
+
+                if window.get_input().is_action_just_pressed("fire"):
+                    dir = Vec2(1, 0).rotate(self.weapon_rotation)
+                    pos = self.position + dir * 0.5
+                    self.bullet_manager.add_bullet(position=pos, direction=dir)
+
+            # print(acceleration)
+            if self.is_jumping == False and self.is_able_to_jump == False:
+                acceleration.y *= 3
+
+            # if pressed_keys[pygame.K_s]:
+            #         acceleration.y += y_val
+            fx = 0.55  # 0<f<1
+            fy = 0.60  # 0<f<1
+            if abs(acceleration.x) > 0:
+                self.velocity.x = lerp(
+                    self.velocity.x,
+                    self.velocity.x + (acceleration.x * self.inertia * dt),
+                    fx,
+                )
             else:
-                self.is_jumping = False
+                self.velocity.x = lerp(self.velocity.x, 0.0, fx)
 
-            if window.get_input().is_action_just_pressed("fire"):
-                dir = Vec2(1, 0).rotate(self.weapon_rotation)
-                pos = self.position + dir * 0.5
-                self.bullet_manager.add_bullet(position=pos, direction=dir)
+            if abs(acceleration.y) > 0:
+                self.velocity.y = lerp(
+                    self.velocity.y,
+                    self.velocity.y + (acceleration.y * self.inertia * dt),
+                    fy,
+                )
+            else:
+                self.velocity.y = lerp(self.velocity.y, 0.0, fy)
 
-        # print(acceleration)
-        if self.is_jumping == False and self.is_able_to_jump == False:
-            acceleration.y *= 3
+            if self.velocity.x > 0:
+                self.facing = "right"
+            elif self.velocity.x < 0:
+                self.facing = "left"
 
-        # if pressed_keys[pygame.K_s]:
-        #         acceleration.y += y_val
-        fx = 0.55  # 0<f<1
-        fy = 0.60  # 0<f<1
-        if abs(acceleration.x) > 0:
-            self.velocity.x = lerp(
-                self.velocity.x,
-                self.velocity.x + (acceleration.x * self.inertia * dt),
-                fx,
+            max_speed_x = 10
+            max_speed_y = 30
+            if abs(self.velocity.x) > max_speed_x:
+                self.velocity.x = abs(max_speed_x) * sign(self.velocity.x)
+            if abs(self.velocity.y) > max_speed_y:
+                self.velocity.y = abs(max_speed_y) * sign(self.velocity.y)
+
+            old_position = self.position.copy()
+            # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
+
+            # print("PRE", self.velocity, self.position)
+
+            self.position.y = lerp(
+                self.position.y, self.position.y + (self.velocity.y * dt), fy
             )
-        else:
-            self.velocity.x = lerp(self.velocity.x, 0.0, fx)
 
-        if abs(acceleration.y) > 0:
-            self.velocity.y = lerp(
-                self.velocity.y,
-                self.velocity.y + (acceleration.y * self.inertia * dt),
-                fy,
-            )
-        else:
-            self.velocity.y = lerp(self.velocity.y, 0.0, fy)
+            if self.collision_map.rect_collision(bbox=self.get_bbox()):
+                if old_position.y < self.position.y:
+                    if not self.is_able_to_jump:
+                        self.is_able_to_jump = True
+                        # self.falling_sound.play()
+                else:
+                    self.is_able_to_jump = False
+                    self.is_jumping = False
 
-        if self.velocity.x > 0:
-            self.facing = "right"
-        elif self.velocity.x < 0:
-            self.facing = "left"
+                self.position.y = old_position.y
+                self.velocity.y = 0
 
-        max_speed_x = 10
-        max_speed_y = 30
-        if abs(self.velocity.x) > max_speed_x:
-            self.velocity.x = abs(max_speed_x) * sign(self.velocity.x)
-        if abs(self.velocity.y) > max_speed_y:
-            self.velocity.y = abs(max_speed_y) * sign(self.velocity.y)
-
-        old_position = self.position.copy()
-        # self.position = self.position.lerp(self.position + (self.velocity * dt), f)
-
-        # print("PRE", self.velocity, self.position)
-
-        self.position.y = lerp(
-            self.position.y, self.position.y + (self.velocity.y * dt), fy
-        )
-
-        if self.collision_map.rect_collision(bbox=self.get_bbox()):
             if old_position.y < self.position.y:
-                if not self.is_able_to_jump:
-                    self.is_able_to_jump = True
-                    # self.falling_sound.play()
-            else:
                 self.is_able_to_jump = False
-                self.is_jumping = False
 
-            self.position.y = old_position.y
-            self.velocity.y = 0
+            self.position.x = lerp(
+                self.position.x, self.position.x + (self.velocity.x * dt), fx
+            )
 
-        if old_position.y < self.position.y:
-            self.is_able_to_jump = False
+            if self.collision_map.rect_collision(bbox=self.get_bbox()):
+                # print("x1", self.position.x)
+                self.position.x = old_position.x
+                # print("x2", self.position.x)
+                self.velocity.x = 0
 
-        self.position.x = lerp(
-            self.position.x, self.position.x + (self.velocity.x * dt), fx
-        )
-
-        if self.collision_map.rect_collision(bbox=self.get_bbox()):
-            # print("x1", self.position.x)
-            self.position.x = old_position.x
-            # print("x2", self.position.x)
-            self.velocity.x = 0
-
-        # print("POST", self.velocity, self.position)
+            # print("POST", self.velocity, self.position)
 
         any_item = False
         while item := self.collision_map.take_usable_collision(bbox=self.get_bbox()):
@@ -281,22 +288,28 @@ class Player:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
         offset = Vec2(PIXEL_SIZE, PIXEL_SIZE) / 2
+        if not self.is_dead():
+            frames = self.images[self.get_state()]
+            image = frames[self.animidx % len(frames)]
+            if self.facing == "left":
+                image = pygame.transform.flip(image, True, False)
 
-        frames = self.images[self.get_state()]
-        image = frames[self.animidx % len(frames)]
-        if self.facing == "left":
-            image = pygame.transform.flip(image, True, False)
+            surface.blit(image, offset)
+        else:
+            frames = self.images["dead"]
+            image = frames[self.animidx % len(frames)]
 
-        surface.blit(image, offset)
+            surface.blit(image, offset)
 
-        weapon = self.weapon.get_weapon_as_surface()
-        weapon = pygame.transform.scale(
-            weapon,
-            (weapon.get_width() * 4, weapon.get_height() * 4),
-        )
-        weapon = pygame.transform.rotate(weapon, -self.weapon_rotation)
+        if not self.is_dead():
+            weapon = self.weapon.get_weapon_as_surface()
+            weapon = pygame.transform.scale(
+                weapon,
+                (weapon.get_width() * 4, weapon.get_height() * 4),
+            )
+            weapon = pygame.transform.rotate(weapon, -self.weapon_rotation)
 
-        surface.blit(weapon, offset + (0, 4))
+            surface.blit(weapon, offset + (0, 4))
 
         camera.blit(
             surface=surface,

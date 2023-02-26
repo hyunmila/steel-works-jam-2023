@@ -19,6 +19,7 @@ class ArtTestLevel:
         if prev_level_id == "next-test-level":
             # self.game.enemy_manager.add_enemy("sorcerer", Vector2(15, 6.9))
             self.game.player.position = Vector2(19, 6.9)
+
         else:
             self.game.player.position = Vector2(10, 6.9)
 
