@@ -67,12 +67,12 @@ class Menu:
                             os.environ["NAP_GAME_MODE_SELECT_69"] = name
                             global CLICKED
                             if not CLICKED:
-                                import src
+                                import entry_point
 
                                 CLICKED = True
                                 return
                             else:
-                                reload(sys.modules["main"])
+                                reload(sys.modules["entry_point"])
                                 return
 
             self.screen.blit(text_surface, text_rect)
