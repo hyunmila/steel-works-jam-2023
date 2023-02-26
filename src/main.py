@@ -18,12 +18,15 @@ from components.text_box import TextBox
 from components.map import Map, Tile
 from components.npc import NPC
 
+from enemy import EnemyMenager
+
 from item import Item, ItemType
 from components.weapon import WeaponManager
 import enemy, time
 
 from components.bullet import BulletManager
 from components.dialog_box import DialogBox
+from components.parallax import Parallax
 
 window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
@@ -115,6 +118,7 @@ dialog_box.show(
 
 weapon_manager = WeaponManager()
 bullet_manager = BulletManager(collision_map=map)
+enemy_manager = EnemyMenager(collision_map=map)
 
 # player controller with camera following
 player = Player(
@@ -133,9 +137,7 @@ text_box = TextBox(
     font_color=Color.WHITE,
     line_height_factor=1.5,
 )
-text_box.set_text(
-    "Get out of here.\nQuickly"
-)
+text_box.set_text("Get out of here.\nQuickly")
 # text_box.offset = (50,0)
 
 # text in 3D space
@@ -190,35 +192,16 @@ spatial_text_box.offset = (100, 100)
 #     weapon.add_item(item3)
 
 # ENEMY testing
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(10, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(11, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(12, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
+# enemy.add_enemy(
+#     "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map ) 
 
-enemy.add_enemy(
-    "sorcerer",
-    "res/wojownik-atakuje.png",
-    Vec2(1, 1),
-    5,
-    Vec2(20, 20),
-    collision_map=map,
-)
+enemy_manager.add_enemy("warrior", Vec2(9, 12))
+enemy_manager.add_enemy("warrior", Vec2(9, 12))
 # enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
 
+parallax = Parallax(
+    path="res/miasteczko-agh.png", height=720, movement_scale=Vector2(0, 0)
+)
 
 # main game loop
 while window.is_open():
@@ -232,6 +215,7 @@ while window.is_open():
     map.update(window=window)
     weapon_manager.update(window=window)
     player.update(window=window)
+    enemy_manager.update(window, player.position, bullet_manager)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
     bullet_manager.update(window=window)
     # dialog_box.update(window=window)
@@ -239,10 +223,11 @@ while window.is_open():
 
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
-    enemy.update_all(player.position, camera, window.get_delta())
+    # enemy.update_all(player.position, camera, window.get_delta())
     player.draw(camera=camera, ui_camera=ui_camera)
     bullet_manager.draw(camera=camera)
     weapon_manager.draw(camera=ui_camera)
+    enemy_manager.draw(camera=camera)
     text_box.draw(camera=ui_camera)
     # dialog_box.draw(camera=ui_camera)
 

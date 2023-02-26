@@ -1,5 +1,4 @@
 from typing import Optional, Tuple
-# from typing_extensions import Self
 import pygame
 import math
 
