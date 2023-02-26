@@ -1,0 +1,7 @@
+POSITION: Middle Manager
+GOAL: Defeat all enemies and collect an extraphotocopier, coffee supermachine and 5 ultracans
+
+#1 boss
+"I need an extraphotocopier, coffee supermachine and 5 ultracans."
+"It's an important business. Also clear the place from monsters, so we are able to run away!" - Boss
+

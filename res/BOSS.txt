@@ -1,0 +1,23 @@
+// zmienia się muzyka
+// pojawia się Pani Jola
+
+#1 jola
+"Hello dear. I've been waiting for you."
+
+#2 me
+Where is the boss??
+
+#3 jola
+"He is not here and he will not be. It was me ordering you all this time."
+
+#4 me
+What is this all stuff for? What is going on? 
+
+#5 jola
+"This stuff will lead to great thing... my creation!"
+"The boss was just a coverup, and the experiment on employees succeeded!"
+"Thanks to that and all of your hard work I will soon destroy the world by making all humans the brainless monsters, killing each other!"
+"But excuse me for now, because I have to put one last element to my machine. Give me the app-le, it will power it!
+
+#6 me
+Oh no! I can't give her the app-le. I have to defeat her to save the world!
