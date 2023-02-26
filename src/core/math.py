@@ -8,3 +8,6 @@ class BBox:
         self.y = y
         self.w = w
         self.h = h
+
+    def __repr__(self) -> str:
+        return f"BBox({self.x}, {self.y}, {self.w}, {self.h})"

@@ -1,0 +1,29 @@
+POSITION: First Level Manager
+GOAL: Collect 2 ultracans
+
+#1 note
+It's year 2051. Right after graduating, you got an internship offer in a market leading company.
+Soon after joining, you realised that your boss is quite eccentric wealthy man...
+
+#2 note
+Company is associated with bioengineering, so you kinda expected this boring job in some kind of old laboratory.
+However, instead of that, you got the office job with sweet Mrs Jola and lots of stressing tasks from your boss...
+
+#3 boss
+"You! Get me 2 ultracans of some juice! Quickly!" - Boss
+
+#4 me
+"He didn't even know your name... And why exactly does he need this stuff...?"
+
+#5 boss
+"Quickly! How long am I supposed to wait?" - Boss
+
+#6 me
+"Is the job as future manager really worth it...? I mean, one advantage is that I won't have any competition, because, well, nobody wants as 
+    stressing job as this one..."
+"I'll better go"
+
+#7 note
+You can collect items by walking into them. Your equipment is under "Q" button. 
+Interactions start under "E" button.
+Finish your level after achieving main goal by climbing the job ladder.

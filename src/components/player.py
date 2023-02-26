@@ -19,10 +19,9 @@ from enemy import EnemyMenager, Enemy
 
 PIXEL_SIZE = 64
 
-hp_img = pygame.image.load("res/helth.png")
-no_hp_img = pygame.image.load("res/nohelth.png")
-hp_img = pygame.transform.scale(hp_img, (PIXEL_SIZE, PIXEL_SIZE))
-no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+
+hp_img = None
+no_hp_img = None
 
 
 class Player:
@@ -33,7 +32,15 @@ class Player:
         weapon_manager: WeaponManager,
         bullet_manager: BulletManager,
         dialog_box: DialogBox,
+        follow_camera_margin: float = 0,
     ) -> None:
+        global hp_img, no_hp_img
+        if hp_img is None:
+            hp_img = pygame.image.load("res/helth.png").convert_alpha()
+            no_hp_img = pygame.image.load("res/nohelth.png").convert_alpha()
+            hp_img = pygame.transform.scale(hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+            no_hp_img = pygame.transform.scale(no_hp_img, (PIXEL_SIZE, PIXEL_SIZE))
+
         self.inertia = 1.0
         self.position = Vec2(0.0, 0.0)
         self.velocity = Vec2(0.0, 0.0)
@@ -44,26 +51,31 @@ class Player:
         self.weapon = weapon_manager
 
         self.follow_camera = follow_camera
+        self.follow_camera_margin = follow_camera_margin
         self.collision_map = collision_map
         self.ticks = 0
         self.animidx = 0
         self.images = {
             "jumping": [
                 pygame.transform.scale(
-                    pygame.image.load("res/player_jump.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player_jump.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 )
             ],
             "walking": [
                 pygame.transform.scale(
-                    pygame.image.load("res/player_r.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player_r.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 ),
                 pygame.transform.scale(
-                    pygame.image.load("res/player_l.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player_l.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 ),
             ],
             "standing": [
                 pygame.transform.scale(
-                    pygame.image.load("res/player.png"), (PIXEL_SIZE, PIXEL_SIZE)
+                    pygame.image.load("res/player.png").convert_alpha(),
+                    (PIXEL_SIZE, PIXEL_SIZE),
                 )
             ],
             "dead":[
@@ -110,9 +122,7 @@ class Player:
         acceleration = Vec2(0.0, 30)
 
         if window.get_input().is_action_just_pressed("interact"):
-            npc = self.collision_map.interaction_collision(
-                bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-            )
+            npc = self.collision_map.interaction_collision(bbox=self.get_bbox())
             if npc is not None:
                 self.dialog_box = npc.interact()
 
@@ -123,29 +133,29 @@ class Player:
             if window.get_input().is_action_pressed("left"):
                 acceleration.x -= x_val
 
-        if window.get_input().is_action_pressed("jump"):
-            # if pressed_keys[pygame.K_w]:
-            if self.is_jumping == False and self.is_able_to_jump == True:
-                self.t_start = perf_counter()
-                self.is_jumping = True
-                self.is_able_to_jump = False
-            if self.is_jumping == True:
-                self.t_stop = perf_counter()
-                if (self.t_stop - self.t_start) <= 0.3:
-                    factor = (self.t_stop - self.t_start)*3
-                    self.velocity.y = -13
-                    #print(self.velocity)
-                    # acceleration.y = -30*(3.5-factor)
-                else:
-                    self.is_jumping = False
+            if window.get_input().is_action_pressed("jump"):
+                # if pressed_keys[pygame.K_w]:
+                if self.is_jumping == False and self.is_able_to_jump == True:
+                    self.t_start = perf_counter()
+                    self.is_jumping = True
                     self.is_able_to_jump = False
-        else:
-            self.is_jumping = False
+                if self.is_jumping == True:
+                    self.t_stop = perf_counter()
+                    if (self.t_stop - self.t_start) <= 0.3:
+                        factor = (self.t_stop - self.t_start) * 3
+                        self.velocity.y = -13
+                        # print(self.velocity)
+                        # acceleration.y = -30*(3.5-factor)
+                    else:
+                        self.is_jumping = False
+                        self.is_able_to_jump = False
+            else:
+                self.is_jumping = False
 
-        if window.get_input().is_action_just_pressed("fire"):
-            dir = Vec2(1, 0).rotate(self.weapon_rotation)
-            pos = self.position + dir * 0.5
-            self.bullet_manager.add_bullet(position=pos, direction=dir)
+            if window.get_input().is_action_just_pressed("fire"):
+                dir = Vec2(1, 0).rotate(self.weapon_rotation)
+                pos = self.position + dir * 0.5
+                self.bullet_manager.add_bullet(position=pos, direction=dir)
 
         # print(acceleration)
         if self.is_jumping == False and self.is_able_to_jump == False:
@@ -194,9 +204,7 @@ class Player:
             self.position.y, self.position.y + (self.velocity.y * dt), fy
         )
 
-        if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-        ):
+        if self.collision_map.rect_collision(bbox=self.get_bbox()):
             if old_position.y < self.position.y:
                 if not self.is_able_to_jump:
                     self.is_able_to_jump = True
@@ -215,9 +223,7 @@ class Player:
             self.position.x, self.position.x + (self.velocity.x * dt), fx
         )
 
-        if self.collision_map.rect_collision(
-            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-        ):
+        if self.collision_map.rect_collision(bbox=self.get_bbox()):
             # print("x1", self.position.x)
             self.position.x = old_position.x
             # print("x2", self.position.x)
@@ -226,9 +232,7 @@ class Player:
         # print("POST", self.velocity, self.position)
 
         any_item = False
-        while item := self.collision_map.take_usable_collision(
-            bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
-        ):
+        while item := self.collision_map.take_usable_collision(bbox=self.get_bbox()):
             any_item = True
             self.weapon.add_item(item)
 
@@ -248,8 +252,29 @@ class Player:
             ),
         )
 
-    def draw(self, camera: Camera, ui_camera: Camera) -> None:
+        # Clamp camera position to never look outside of the map
+        w0 = self.follow_camera.viewport.get_width() / 2 + self.follow_camera_margin
+        w1 = (
+            self.collision_map.get_map_size()[0] * self.collision_map.get_tile_size()
+            - self.follow_camera.viewport.get_width() / 2
+            - self.follow_camera_margin
+        )
+        h0 = self.follow_camera.viewport.get_height() / 2 + self.follow_camera_margin
+        h1 = (
+            self.collision_map.get_map_size()[1] * self.collision_map.get_tile_size()
+            - self.follow_camera.viewport.get_height() / 2
+            - self.follow_camera_margin
+        )
+        self.follow_camera.position = (
+            pygame.math.clamp(self.follow_camera.position[0], w0, w1)
+            if w0 <= w1
+            else self.follow_camera.position[0],
+            pygame.math.clamp(self.follow_camera.position[1], h0, h1)
+            if h0 <= h1
+            else self.follow_camera.position[1],
+        )
 
+    def draw(self, camera: Camera, ui_camera: Camera) -> None:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
         offset = Vec2(PIXEL_SIZE, PIXEL_SIZE) / 2
@@ -283,7 +308,7 @@ class Player:
         # max_hp = self.hp
         for i in range(self.max_hp):
             hp_x = -(ui_camera.viewport.get_width() / 2) + 30
-            hp_y = -(ui_camera.viewport.height / 2) + hp_img.get_height() * i + 30
+            hp_y = -(ui_camera.viewport.get_height() / 2) + hp_img.get_height() * i + 30
             if i + 1 <= self.hp:
                 ui_camera.blit(hp_img, offset=(hp_x, hp_y))
             else:
@@ -312,16 +337,5 @@ class Player:
         else:
             self.max_hp = 3
 
-    def is_dead(self):
-        if self.hp <= 0:
-            return True
-        return False 
-
-    def combat(self, enemy_meneger : EnemyMenager, ):
-        enemies = enemy_meneger.get_enemies()
-        for enemy in enemies:
-            if enemy.attack(self.position):
-                self.hp -= 1
-            if self.is_dead():
-                print("MARTWY KORKOCIĄG")
-            
+    def get_bbox(self) -> BBox:
+        return BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)

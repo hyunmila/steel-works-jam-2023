@@ -1,0 +1,5 @@
+#1
+You defeated the boss and saved the world. Congratulations!
+
+#2
+You couldn't defeat the boss and changed into a monster together with everyone else. Try again!

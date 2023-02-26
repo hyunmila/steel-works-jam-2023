@@ -51,3 +51,13 @@ potrzeba:
 4 broń, tworzenie w workshopie - Igor
 
 WIDTH, HEIGHT = 640, 360
+
+sprite'y potrzebne do tworzenia środowisk:
+metalowa szafa z szufladami na dokumenty
+korpo biurko z komputerem lub bez
+ozdobna roślina w doniczce
+kolumna wsporna
+korpo pufy do siedzenia
+lampy wiszące z sufitu
+kubek do kawy
+czajnik z herbatą

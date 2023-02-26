@@ -4,7 +4,7 @@ from core.camera import Camera
 from core.window import Window
 from components.text_box import TextBox
 from core.color import Color
-from core.music import Sound 
+from core.music import Sound
 
 BOX_WIDTH = 920
 
@@ -25,9 +25,11 @@ class DialogBox:
         self._empty = True
         self._dialog_queue = []
         self._sound = Sound("res/tick.mp3")
+        self._just_shown = False
 
     def show(self, messages: List[str]) -> None:
         self._dialog_queue = messages
+        self._just_shown = True
 
     def is_shown(self) -> bool:
         return self._shown
@@ -43,8 +45,9 @@ class DialogBox:
             else:
                 self._shown = False
 
-        if window.get_input().is_any_key_just_pressed():
+        if window.get_input().is_any_key_just_pressed() and not self._just_shown:
             self._empty = True
+        self._just_shown = False
 
         if self._text != self._target_text:
             self._typing_timer += window.get_delta()
@@ -54,7 +57,7 @@ class DialogBox:
 
             letter = self._target_text[len(self._text)]
             self._text += letter
-            self._sound.set_volume( (ord(letter)-22)/100 )
+            self._sound.set_volume((ord(letter) - 22) / 100)
             self._sound.play()
 
             self.text_box.set_text(self._text)
@@ -80,7 +83,7 @@ class DialogBox:
 
         box_offset = (
             -BOX_WIDTH / 2,
-            camera.viewport.height / 2 - box_height,
+            camera.viewport.get_height() / 2 - box_height,
         )
         camera.blit(surface, box_offset)
 

@@ -1,9 +1,10 @@
 import pygame
 from typing import List, Tuple, Optional
-from item import Item, ItemType
-from inventory import Inventory
+from common.item import Item, ItemType
+from common.inventory import Inventory
 from pygame.math import Vector2 as Vec2
 from core.music import Sound
+from collections import Counter
 
 # from core.camera import Camera
 from components.text_box import TextBox
@@ -25,6 +26,10 @@ class WeaponManager:
         self.thud_sound = Sound("res/thud.mp3")
         self.pickup_sound = Sound("res/pickup.mp3")
 
+    def all_items(self):
+        from_items = Counter([item.name for item, _ in self.items])
+        from_inventory = self.inventory.get_for_objective()
+        return {**from_items, **from_inventory}
 
     def is_valid(self, spot, item):
         rect = pygame.Rect(spot, item.shape)
@@ -286,5 +291,8 @@ class WeaponManager:
 
         camera.blit(
             surface=self.surface,
-            offset=(-camera.viewport.get_width() / 2, -camera.viewport.height / 2),
+            offset=(
+                -camera.viewport.get_width() / 2,
+                -camera.viewport.get_height() / 2,
+            ),
         )

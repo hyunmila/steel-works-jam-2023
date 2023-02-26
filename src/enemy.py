@@ -39,6 +39,7 @@ PIXEL_SIZE = 64
 DAMGE = 1
 # kolizje sprawdzamy w Enemy
 
+
 class Enemy(metaclass=abc.ABCMeta):
     def __init__(self, pos: Vec2, collision_map: Map):
         self.rect = pos
@@ -225,7 +226,7 @@ class Enemy(metaclass=abc.ABCMeta):
             self.rect.x = old_position.x
             # print("x2", self.position.x)
             self.vel.x = 0
-   
+
     # to update all status about enemy
     def update(self, window: Window, player_pos):
         pass
@@ -236,9 +237,9 @@ class Enemy(metaclass=abc.ABCMeta):
     def get_class(self):
         pass
 
-    def combat(self, bullets : List[Bullet]):
+    def combat(self, bullets: List[Bullet]):
         pass
-    
+
     def getRect(self):
         return pygame.Rect(self.rect.x * PIXEL_SIZE, 
                            self.rect.y * PIXEL_SIZE,
@@ -255,7 +256,7 @@ class Warrior(Enemy):
     # def __init__(self, path, pos, dist, vel, collision_map):
     #     super().__init__(path, pos, dist, vel, collision_map)
     #     self.strong_attack = False
-        # self.cooldown = cooldown
+    # self.cooldown = cooldown
     def __init__(self, pos: Vec2, collision_map: Map):
         super().__init__(pos, collision_map)
         self.cooldown = 2
@@ -364,24 +365,27 @@ class Sorcerer(Enemy):
 
 # sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
 #                           , cols=-1, frame_rate= 8)
-class EnemyMenager:
-    def __init__(self, collision_map : Map):
+class EnemyManager:
+    def __init__(self, collision_map: Map):
         self._enemies = []
         self.collision_map = collision_map
-        self._classes = {"warrior" : Warrior, "sorcerer" : Sorcerer}
+        self._classes = {"warrior": Warrior, "sorcerer": Sorcerer}
         # self._animations = {"warrior" :  warrior_anim, "sorcerer": sorcer_anim} # fill with path
-        self._animations = {"warrior" :  warrior_anim} # fill with path
+        self._animations = {"warrior": warrior_anim}  # fill with path
 
     def get_enemies(self) -> List[Enemy]:
         return self._enemies
 
-    def add_enemy(self, enemy_class : str, possition : Vec2):
+    def add_enemy(self, enemy_class: str, possition: Vec2):
         self._enemies.append(self._classes[enemy_class](possition, self.collision_map))
-    
-    def remove_enemy(self, enemy : Enemy):
+
+    def remove_enemy(self, enemy: Enemy):
         self._enemies.remove(enemy)
 
-    def update(self, window : Window, player_pos : Vec2, bullets_meneger : BulletManager):
+    def clear(self):
+        self._enemies = []
+
+    def update(self, window: Window, player_pos: Vec2, bullets_manager: BulletManager):
         for enemy in self._enemies:
             to_delete = enemy.combat(bullets_meneger)
             # tmp = self._animations[enemy.get_class()]
@@ -392,7 +396,7 @@ class EnemyMenager:
             if to_delete is not None:
                 self.remove_enemy(to_delete)
 
-    def draw(self, camera : Camera):
+    def draw(self, camera: Camera):
         for enemy in self._enemies:
             # enemy.draw(camera, self._animations[enemy.get_class()])
             enemy.draw(camera)
@@ -488,7 +492,7 @@ if __name__ == "__main__":
     pass
 
 
-# update 
+# update
 # draw
 
 # zhardcodzic path do zfd
