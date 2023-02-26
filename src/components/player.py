@@ -114,7 +114,7 @@ class Player:
         self.weapon_rotation = atan2(vec.y, vec.x) * 180 / pi
 
     def update(self, window: Window):
-        if self.is_dead():
+        if not self.is_dead():
             self.rotate_weapon(window)
         # self.inertia = max(1.0, self.weapon.get_weight()
 
