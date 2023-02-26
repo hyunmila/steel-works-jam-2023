@@ -12,9 +12,11 @@ CLICKED = False
 class Menu:
     def __init__(self) -> None:
         self.screen = pygame.display.get_surface()
+        self.windowname = pygame.display.set_caption("Menu")
 
     def run_menu(self):
         pygame.init()
+        
         clock = pygame.time.Clock()
         running = True
         mouse = (0, 0)
