@@ -2,6 +2,7 @@ import pygame
 
 pygame.init()
 pygame.mixer.init()
+pygame.mixer.set_num_channels(100)
 
 import os
 from pygame.math import Vector2 as Vec2
@@ -11,9 +12,13 @@ from core.window import Window
 from core.camera import Camera
 from core.color import Color
 from core.music import Sound
+from core.animation import Animation
 from components.player import Player
 from components.text_box import TextBox
 from components.map import Map, Tile
+from components.npc import NPC
+
+from enemy import EnemyMenager
 
 from item import Item, ItemType
 from components.weapon import WeaponManager
@@ -27,7 +32,8 @@ window = Window(title="SteelWorksJam 2023", size=(1280, 720), frame_rate=60)
 
 # input mappings for easier scripting
 input = window.get_input()
-input.add_action_key(action="crafting", key=pygame.K_p, scale=1)
+input.add_action_key(action="crafting", key=pygame.K_q, scale=1)
+input.add_action_key(action="interact", key=pygame.K_e, scale=1)
 input.add_action_key(action="right", key=pygame.K_d, scale=1)
 input.add_action_key(action="left", key=pygame.K_a, scale=-1)
 input.add_action_key(action="right", key=pygame.K_RIGHT, scale=1)
@@ -78,6 +84,24 @@ map = Map(
             "res/turbokserokopiarka.png", collision=False, item=turbokserokopiarka
         ),
         Color.GREEN: Tile("res/ultraekspres.png", collision=False, item=ultraekspres),
+        Color.BLUE: Tile(
+            "",
+            collision=False,
+            item=None,
+            interactible=NPC(
+                dialog_box=DialogBox(),
+                animation=Animation(
+                    sheet=pygame.image.load("res/jola.png").convert_alpha(),
+                    cols=4,
+                    frame_rate=5,
+                ),
+                text=[
+                    "Lubie\nplacki",
+                    "AAAaaaaAAAaaaaAAAaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaA",
+                    "turbosprezarka",
+                ],
+            ),
+        ),
     },
     tile_size=64,
 )
@@ -95,6 +119,7 @@ dialog_box.show(
 
 weapon_manager = WeaponManager()
 bullet_manager = BulletManager(collision_map=map)
+enemy_manager = EnemyMenager(collision_map=map)
 
 # player controller with camera following
 player = Player(
@@ -168,33 +193,11 @@ spatial_text_box.offset = (100, 100)
 #     weapon.add_item(item3)
 
 # ENEMY testing
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(10, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(11, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(12, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
-enemy.add_enemy(
-    "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map
-)
+# enemy.add_enemy(
+#     "warrior", "res/wojownik.png", Vec2(9, 12), 10, Vec2(20, 20), collision_map=map )
 
-enemy.add_enemy(
-    "sorcerer",
-    "res/wojownik-atakuje.png",
-    Vec2(1, 1),
-    5,
-    Vec2(20, 20),
-    collision_map=map,
-)
+enemy_manager.add_enemy("warrior", Vec2(9, 12))
+enemy_manager.add_enemy("warrior", Vec2(9, 12))
 # enemy.add_enemy("warrior", "res/wojownik.png", Vec2(0, 5), 5, Vec2(0.07,0.07))
 
 city_parallax = Parallax(
@@ -220,21 +223,29 @@ def level():
 while window.is_open():
     window.process_events()
 
+    if input.is_action_just_pressed(action="crafting"):
+        duct_tape_sound.play()
+
+    map.update(window=window)
     weapon_manager.update(window=window)
     player.update(window=window)
+    enemy_manager.update(window, player.position, bullet_manager)
     text_box.offset = (-viewport.get_width() / 5, -viewport.height / 2)
     bullet_manager.update(window=window)
-    dialog_box.update(window=window)
+    # dialog_box.update(window=window)
 
     city_parallax.draw(camera=camera)
     office_parallax.draw(camera=camera)
     spatial_text_box.draw(camera=camera)
     map.draw(camera=camera)
-    enemy.update_all(player.position, camera, window.get_delta())
+    # enemy.update_all(player.position, camera, window.get_delta())
     player.draw(camera=camera, ui_camera=ui_camera)
     bullet_manager.draw(camera=camera)
     weapon_manager.draw(camera=ui_camera)
+    enemy_manager.draw(camera=camera)
     text_box.draw(camera=ui_camera)
     dialog_box.draw(camera=ui_camera)
 
     window.swap_buffers()
+
+main_song.stop()

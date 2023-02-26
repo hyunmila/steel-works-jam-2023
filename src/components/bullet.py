@@ -1,5 +1,5 @@
 import math
-from typing import Callable, List
+from typing import Callable
 from pygame import Vector2
 import pygame
 from core.camera import Camera
@@ -46,7 +46,7 @@ class Bullet:
     def update(self, window: Window) -> None:
         self.position += self._direction * BULLET_SPEED * window.get_delta()
 
-        bbox = BBox(self.position.x + 0.3, self.position.y + 0.3, 0.4, 0.4)
+        bbox = self.getRect()
         if self.collision_map.rect_collision(bbox):
             self.on_collision()
 
@@ -59,14 +59,16 @@ class Bullet:
         rotated_img = pygame.transform.rotate(img, angle)
 
         camera.blit(rotated_img, self.position * PIXELS_IN_UNIT)
-
+    
+    def getRect(self):
+        return BBox(self.position.x + 0.3, self.position.y + 0.3, 0.4, 0.4)
 
 class BulletManager:
     def __init__(self, collision_map: Map):
         self._bullets = []
         self.collision_map = collision_map
 
-    def get_bullets(self) -> List[Bullet]:
+    def get_bullets(self) -> list[Bullet]:
         return self._bullets
 
     def add_bullet(self, position: Vector2, direction: Vector2) -> None:
