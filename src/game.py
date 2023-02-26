@@ -14,6 +14,8 @@ from core.camera import Camera
 from core.color import Color
 from core.viewport import Viewport
 from core.window import Window
+from levels.npc_preset import get_npc
+from levels.item_preset import get_item
 
 
 class Game:
@@ -33,6 +35,7 @@ class Game:
 
             self.window.swap_buffers()
 
+        pygame.mixer.stop()
         self._close()
 
     def _init(self):
@@ -111,31 +114,33 @@ class Game:
             tiles={
                 Color.WHITE: Tile("", False),
                 Color.BLACK: Tile("", True),
-                Color.RED: Tile(
-                    "res/turbokserokopiarka.png",
-                    collision=False,
-                    item=turbokserokopiarka,
-                ),
-                Color.GREEN: Tile(
-                    "res/ultraekspres.png", collision=False, item=ultraekspres
-                ),
-                Color.BLUE: Tile(
-                    "",
-                    collision=False,
-                    interactible=NPC(
-                        dialog_box=self.dialog_box,
-                        animation=Animation(
-                            sheet=pygame.image.load("res/jola.png").convert_alpha(),
-                            cols=4,
-                            frame_rate=5,
-                        ),
-                        text=[
-                            "Lubie\nplacki",
-                            "AAAaaaaAAAaaaaAAAaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaA",
-                            "turbosprezarka",
-                        ],
-                    ),
-                ),
+                **get_item(),
+                **get_npc(self.dialog_box)
+                # Color.RED: Tile(
+                #     "res/turbokserokopiarka.png",
+                #     collision=False,
+                #     item=turbokserokopiarka,
+                # ),
+                # Color.GREEN: Tile(
+                #     "res/ultraekspres.png", collision=False, item=ultraekspres
+                # ),
+                # Color.BLUE: Tile(
+                #     "",
+                #     collision=False,
+                #     interactible=NPC(
+                #         dialog_box=self.dialog_box,
+                #         animation=Animation(
+                #             sheet=pygame.image.load("res/jola.png").convert_alpha(),
+                #             cols=4,
+                #             frame_rate=5,
+                #         ),
+                #         text=[
+                #             "Lubie\nplacki",
+                #             "AAAaaaaAAAaaaaAAAaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaA",
+                #             "turbosprezarka",
+                #         ],
+                    # ),
+                # ),
             },
             tile_size=64,
         )

@@ -21,6 +21,13 @@ class NextTestLevel:
         )
 
         self.level_art = Sprite(path="res/level4_graphics.png", scale=4)
+        # self.level_art = Sprite(path="res/art-test-level-art.png", scale=4)
+        # self.level_art = Sprite(path="res/next-test-level-art.png", scale=4)
+        # self.level_art = Sprite(path="res/level3_resized.png", scale=4)
+        # self.level_art = Sprite(path="res/level7_resized.png", scale=4)
+        # self.level_art = Sprite(path="res/boss_resized.png", scale=4)
+
+
 
         self.trigger = Trigger(
             player=self.game.player,
