@@ -30,6 +30,7 @@ class DialogBox:
     def show(self, messages: List[str]) -> None:
         self._dialog_queue = messages
         self._just_shown = True
+        self._empty = True
 
     def is_shown(self) -> bool:
         return self._shown
@@ -45,9 +46,9 @@ class DialogBox:
             else:
                 self._shown = False
 
-        if window.get_input().is_any_key_just_pressed() and not self._just_shown:
-            self._empty = True
-        self._just_shown = False
+        # if window.get_input().is_any_key_just_pressed() and self.is_shown():#and not self._just_shown:
+        #     self._empty = True
+        # self._just_shown = False
 
         if self._text != self._target_text:
             self._typing_timer += window.get_delta()

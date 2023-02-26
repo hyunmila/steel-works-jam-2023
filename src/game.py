@@ -35,6 +35,7 @@ class Game:
 
             self.window.swap_buffers()
 
+        pygame.mixer.stop()
         self._close()
 
     def _init(self):

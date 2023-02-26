@@ -19,8 +19,8 @@ BOSS_TEXT = [
     [
     "Quickly! How long am I supposed to\nwait?' - Boss",
     "Is the job as future manager really\nworth it...?",
-    "I mean, one advantage is that I\nwon't have any competition because,\n well, nobody wants a job as\n stressful as this one..."
-    "I'd better go..."
+    "I mean, one advantage is that I\nwon't have any competition because,\nwell, nobody wants a job as\nstressful as this one...",
+    "I'd better go...",
     ] #4
 ]
 NOTE_TEXT = [
@@ -111,10 +111,8 @@ def get_npc(dialogbox : DialogBox):
     for i, text in enumerate(JOLA_TEXT, start = 1):
         jola[(i, 0, 0)] = Tile("", collision = False, interactible=NPC(dialog_box=dialogbox, animation=NPC_JOLA, text=text))
         
-
     for i, text in enumerate(BOSS_TEXT, start = 1):
         boss[(0, i, 0)] = Tile("", collision = False, interactible=NPC(dialog_box=dialogbox, animation=NPC_BOSS, text=text))
-        print(text)
     
     for i, text in enumerate(NOTE_TEXT, start = 1):
         note[(0, 0, i)] = Tile("", collision = False, interactible=NPC(dialog_box=dialogbox, animation=NPC_NOTE, text=text))
