@@ -211,14 +211,14 @@ office_parallax = Parallax(
     movement_scale=Vector2(0, 0),
 )
 
+
+def level():
+    pass
+
+
 # main game loop
 while window.is_open():
     window.process_events()
-
-    if input.is_action_just_pressed(action="crafting"):
-        print(f"delta = {window.get_delta()}")
-        player.weapon.visible = not player.weapon.visible
-        duct_tape_sound.play()
 
     weapon_manager.update(window=window)
     player.update(window=window)

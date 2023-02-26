@@ -122,7 +122,7 @@ class Player:
 
             if window.get_input().is_action_pressed("jump"):
                 # if pressed_keys[pygame.K_w]:
-                if self.is_jumping == False:
+                if self.is_jumping == False and self.is_able_to_jump == True:
                     self.t_start = perf_counter()
                     self.is_jumping = True
                     self.is_able_to_jump = False
