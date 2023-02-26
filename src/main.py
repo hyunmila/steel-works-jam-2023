@@ -87,7 +87,6 @@ map = Map(
         Color.BLUE: Tile(
             "", collision=False, item=None,
             interactible= NPC(
-                dialog_box=DialogBox(),
                 animation=Animation(
                     sheet=pygame.image.load("res/jola.png").convert_alpha(),
                     cols=4,

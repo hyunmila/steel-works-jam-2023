@@ -4,8 +4,8 @@ from core.animation import Animation
 from core.window import Window
 
 class NPC:
-    def __init__(self, dialog_box: DialogBox, animation: Animation, text: List[str]):
-        self.dialog_box = dialog_box
+    def __init__(self, animation: Animation, text: List[str]):
+        self.dialog_box = DialogBox()
         self.animation = animation
         self.text = text
 

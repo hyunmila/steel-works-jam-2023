@@ -7,6 +7,10 @@ class Inventory:
         self.storage: List[Optional[Tuple[Item, int]]] = [None for _ in range(16)]
         self.first_free_index = 0
 
+    def get_for_objective(self):
+        not_none = [x for x in self.storage if x is not None]
+        return {item.name:count for item, count in not_none}
+
     def add_item(self, item: Item):
         for i, elem in enumerate(self.storage):
             if elem is None:
