@@ -29,7 +29,7 @@ class ThirdLevel:
         self.trigger = Trigger(
             player=self.game.player,
             bbox=BBox(x=18, y=1, w=0.1, h=2),
-            on_enter=lambda: self.game.set_level(level_id="art-test-level"),
+            on_enter=lambda: self.game.set_level(level_id="lvl4"),
         )
 
     def update(self):

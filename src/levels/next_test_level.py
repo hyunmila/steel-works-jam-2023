@@ -20,12 +20,15 @@ class NextTestLevel:
 
         self.game.enemy_manager.add_enemy("warrior", Vector2(5, 9))
         # self.game.enemy_manager.add_enemy("boss", Vector2(5, 9))
+        # START
         # lvl 1 : Vector2(1, 8)
         # lvl 2 : Vector2(2, 11)
         # lvl 3 : Vector2(7, 37)
         # lvl 4 : 
         # lvl 7 : Vector2(0, 8)
         # boss : Vector2(0, 8)
+        # END
+        # lvl 1 : 
         self.game.player.position = Vector2(0, 8)
         self.game.camera.position = (
             self.game.player.position * self.game.map.get_tile_size()

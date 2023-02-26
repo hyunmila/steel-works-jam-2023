@@ -28,7 +28,7 @@ class BossLevel:
         self.trigger = Trigger(
             player=self.game.player,
             bbox=BBox(x=4, y=8, w=0.1, h=2),
-            on_enter=lambda: self.game.set_level(level_id="art-test-level"),
+            on_enter=lambda: self.game.set_level(level_id="end"),
         )
 
     def update(self):
