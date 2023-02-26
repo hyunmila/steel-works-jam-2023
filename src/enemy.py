@@ -11,6 +11,7 @@ from core.math import BBox, lerp
 from typing import List
 from time import perf_counter
 from core.animation import Animation
+from components.bullet import BulletManager, Bullet
 
 
 class Box:
@@ -35,17 +36,14 @@ class Box:
 
 
 PIXEL_SIZE = 64
-
+DAMGE = 1
 # kolizje sprawdzamy w Enemy
 
 class Enemy(metaclass=abc.ABCMeta):
-    def __init__(self, path, pos: Vec2, dist, vel: Vec2, collision_map: Map):
-        self.image = pygame.image.load(path)
-        self.image = pygame.transform.scale(self.image, (PIXEL_SIZE, PIXEL_SIZE))
-        # self.rect = self.image.get_rect(center=(pos[0] * PIXEL_SIZE, pos[1] * PIXEL_SIZE))
+    def __init__(self, pos: Vec2, collision_map: Map):
         self.rect = pos
-        self.vel = vel
-        self.dist = dist
+        self.vel = Vec2(0.0, 0.0)
+        self.dist = 5
         self.collision_map = collision_map
         self.health = 3
         self.ticks = 0
@@ -232,12 +230,21 @@ class Enemy(metaclass=abc.ABCMeta):
     def get_class(self):
         pass
 
+    def combat(self, bullets : List[Bullet]):
+        pass
+    
+    def getRect(self):
+        return pygame.Rect(self.rect.x * PIXEL_SIZE, 
+                           self.rect.y * PIXEL_SIZE,
+                           PIXEL_SIZE, PIXEL_SIZE)
 
 class Warrior(Enemy):
-    def __init__(self, path, pos, dist, vel, collision_map):
-        super().__init__(path, pos, dist, vel, collision_map)
-        self.strong_attack = False
+    # def __init__(self, path, pos, dist, vel, collision_map):
+    #     super().__init__(path, pos, dist, vel, collision_map)
+    #     self.strong_attack = False
         # self.cooldown = cooldown
+    def __init__(self, pos: Vec2, collision_map: Map):
+        super().__init__(pos, collision_map)
 
     def update(self, window: Window, animation : Animation,  player_pos):
         f = 0.2
@@ -250,15 +257,36 @@ class Warrior(Enemy):
         
         animation.update(window)
 
-
     def get_class(self) -> str:
         return "warrior"
     
+    def is_dead(self) -> bool:
+        if self.health <= 0:
+            return True
+        return False
+
+    def combat(self, bullet_meneger : BulletManager) -> bool:
+
+        bullets = bullet_meneger.get_bullets()
+        for bullet in bullets:
+            bullet_box = bullet.getRect()
+
+            tmp_rect = pygame.Rect(bullet_box.x * PIXEL_SIZE, bullet_box.y * PIXEL_SIZE
+                                   , bullet_box.w * PIXEL_SIZE, bullet_box.h * PIXEL_SIZE)
+            print(self.getRect(), tmp_rect)
+            if (self.getRect().colliderect(tmp_rect)):
+                bullet_meneger.remove_bullet(bullet)
+                print("OK")
+                self.health -= 1
+                if self.is_dead():
+                    return self
+        return None
+
+
+
 class Sorcerer(Enemy):
-    def __init__(self, path, pos, dist, vel, collision_map):
-        super().__init__(path, pos, dist, vel, collision_map)
-        self.bullet_vel = Vec2(30, 30)
-        self.bullets = []
+    def __init__(self, pos: Vec2, collision_map: Map):
+        super().__init__(pos, collision_map)
 
     def shoot(self, player_pos):
         if self.can_shoot(player_pos):
@@ -314,32 +342,34 @@ class Sorcerer(Enemy):
         return "sorcerer"
 
 
-warrior_anim = Animation(pygame.transform.scale(pygame.image.load("path...."), (64 * 2, 64)),
+warrior_anim = Animation(pygame.transform.scale(pygame.image.load("res/wojownik-sheet.png"), (64 * 2, 64)),
                           cols= 2, frame_rate= 8)
-sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
-                          , cols=-1, frame_rate= 8)
+# sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
+#                           , cols=-1, frame_rate= 8)
 class EnemyMenager:
     def __init__(self, collision_map : Map):
         self._enemies = []
         self.collision_map = collision_map
         self._classes = {"warrior" : Warrior, "sorcerer" : Sorcerer}
-        self._animations = {"warrior" :  warrior_anim, "sorcerer": sorcer_anim} # fill with path
+        # self._animations = {"warrior" :  warrior_anim, "sorcerer": sorcer_anim} # fill with path
+        self._animations = {"warrior" :  warrior_anim} # fill with path
 
     def get_enemies(self) -> List[Enemy]:
         return self._enemies
 
     def add_enemy(self, enemy_class : str, possition : Vec2):
-        def on_collision(enemy):
-            self._enemies.remove(enemy)
-        
-        self._enemies.append(self._classes[enemy_class]())
+        self._enemies.append(self._classes[enemy_class](possition, self.collision_map))
     
     def remove_enemy(self, enemy : Enemy):
         self._enemies.remove(enemy)
 
-    def update(self, window : Window, player_pos : Vec2):
+    def update(self, window : Window, player_pos : Vec2, bullets_meneger : BulletManager):
         for enemy in self._enemies:
+            to_delete = enemy.combat(bullets_meneger)
             enemy.update(window, self._animations[enemy.get_class()], player_pos)
+            
+            if to_delete is not None:
+                self.remove_enemy(to_delete)
 
     def draw(self, camera : Camera):
         for enemy in self._enemies:
@@ -415,16 +445,16 @@ def enemy_collision(enemies: List[Enemy]):
                 # enemies[i].setPosY(random.random())
 
 
-def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
-    if type_of_enemy == "warrior":
-        enemies.append(
-            enum["warrior"](path, position, distance, vel_of_chase, collision_map)
-        )
+# def add_enemy(type_of_enemy, path, position, distance, vel_of_chase, collision_map):
+#     if type_of_enemy == "warrior":
+#         enemies.append(
+#             enum["warrior"](path, position, distance, vel_of_chase, collision_map)
+#         )
 
-    if type_of_enemy == "sorcerer":
-        enemies.append(
-            enum["sorcerer"](path, position, distance, vel_of_chase, collision_map)
-        )
+#     if type_of_enemy == "sorcerer":
+#         enemies.append(
+#             enum["sorcerer"](path, position, distance, vel_of_chase, collision_map)
+#         )
 
 
 def update_all(player_pos, camera, timer):
