@@ -1,0 +1,9 @@
+POSITION: Senior Executive
+GOAL: Collect an app-le
+
+#1 boss
+"I've been waiting for so long for you, I got really hungry."
+"Bring me an app-le." - Boss
+
+//jest tylko 1 jabłko na mapie, bardzo dużo potworów, trzeba 
+zabić bardzo dużo, żeby móc je zebrać.

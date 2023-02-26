@@ -106,7 +106,6 @@ class Game:
             shape=(2, 2),
             color=(255, 0, 255),
         )
-
         self.map = Map(
             tiles={
                 Color.WHITE: Tile("", False),

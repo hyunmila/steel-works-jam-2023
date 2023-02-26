@@ -1,0 +1,7 @@
+POSITION: First Level Executive
+GOAL: Defeat all enemies and collect all fastplants
+
+#1 boss
+"Turns out, the leakage in laboratory was caused by fastplants research."
+"Collect all of them so we can test them and try to find out what happened."
+"Don't forget the monsters!" - Boss 

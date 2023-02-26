@@ -21,8 +21,15 @@ class ArtTestLevel:
             font_color=Color.WHITE,
             line_height_factor=1.5,
         )
-        self.spatial_text_box.set_text("NAP Game - Not A Platformer Game")
-        self.spatial_text_box.offset = (100, 400)
+        self.spatial_text_box.set_text("Art Test Level")
+        self.spatial_text_box.offset = (
+            (
+                self.game.map.get_map_size()[0] * self.game.map.get_tile_size()
+                - self.spatial_text_box.get_size()[0]
+            )
+            / 2,
+            600,
+        )
 
     def close(self) -> None:
         self.game.map.clear()

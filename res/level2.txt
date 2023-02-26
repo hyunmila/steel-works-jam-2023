@@ -1,0 +1,12 @@
+POSITION: Middle Manager
+GOAL: Defeat all enemies
+
+#1 boss
+"Monsters! Monsters everywhere! There was an unexpected leakage from the laboratory, resulting in mutating all the workers into monsters!"
+"I'm at the highest floor, in my office. Quick, help me!" - Boss
+
+#2 note
+By clicking the left mouse button you can shoot the enemy.
+Try upgrading your weapon by collecting the found items and putting them together in workshop placed in your equipment.
+Take an item from workshop and hide it back to the equiplment by clicking the right mouse button.
+Be careful! If the elements are put together with some gaps, something may explode!
