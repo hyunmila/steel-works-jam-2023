@@ -110,9 +110,11 @@ def get_npc(dialogbox : DialogBox):
     note = {}
     for i, text in enumerate(JOLA_TEXT, start = 1):
         jola[(i, 0, 0)] = Tile("", collision = False, interactible=NPC(dialog_box=dialogbox, animation=NPC_JOLA, text=text))
+        
 
     for i, text in enumerate(BOSS_TEXT, start = 1):
         boss[(0, i, 0)] = Tile("", collision = False, interactible=NPC(dialog_box=dialogbox, animation=NPC_BOSS, text=text))
+        print(text)
     
     for i, text in enumerate(NOTE_TEXT, start = 1):
         note[(0, 0, i)] = Tile("", collision = False, interactible=NPC(dialog_box=dialogbox, animation=NPC_NOTE, text=text))
