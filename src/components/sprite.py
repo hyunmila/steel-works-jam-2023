@@ -25,3 +25,6 @@ class Sprite:
 
     def draw(self, camera: Camera) -> None:
         camera.blit(self._img, self.offset)
+
+    def draw_no_resize(self, camera: Camera) -> None:
+        camera.blit_no_resize(self._img, self.offset)
