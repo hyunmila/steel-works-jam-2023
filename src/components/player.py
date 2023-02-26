@@ -103,6 +103,13 @@ class Player:
 
         acceleration = Vec2(0.0, 30)
 
+        if window.get_input().is_action_just_pressed("interact"):
+            npc = self.collision_map.interaction_collision(
+                bbox=BBox(self.position.x + 0.2, self.position.y + 0.1, 0.6, 0.9)
+            )
+            if npc is not None:
+                self.dialog_box = npc.interact()
+
         if not self.dialog_box.is_shown():
             if window.get_input().is_action_pressed("right"):
                 acceleration.x += x_val
@@ -110,33 +117,29 @@ class Player:
             if window.get_input().is_action_pressed("left"):
                 acceleration.x -= x_val
 
-            if window.get_input().is_action_pressed("jump"):
-                # if pressed_keys[pygame.K_w]:
-                if self.is_jumping == False and self.is_able_to_jump == True:
-                    self.t_start = perf_counter()
-                    self.is_jumping = True
+        if window.get_input().is_action_pressed("jump"):
+            # if pressed_keys[pygame.K_w]:
+            if self.is_jumping == False and self.is_able_to_jump == True:
+                self.t_start = perf_counter()
+                self.is_jumping = True
+                self.is_able_to_jump = False
+            if self.is_jumping == True:
+                self.t_stop = perf_counter()
+                if (self.t_stop - self.t_start) <= 0.3:
+                    factor = (self.t_stop - self.t_start)*3
+                    self.velocity.y = -13
+                    #print(self.velocity)
+                    # acceleration.y = -30*(3.5-factor)
+                else:
+                    self.is_jumping = False
                     self.is_able_to_jump = False
-                if self.is_jumping == True:
-                    self.t_stop = perf_counter()
-                    if (self.t_stop - self.t_start) <= 0.3:
-                        factor = (self.t_stop - self.t_start) * 3
-                        self.velocity.y = -13
-                        # print(self.velocity)
-                        # acceleration.y = -30*(3.5-factor)
-                    else:
-                        self.is_jumping = False
-                        self.is_able_to_jump = False
-            else:
-                self.is_jumping = False
+        else:
+            self.is_jumping = False
 
-            if window.get_input().is_action_pressed("left"):
-                # if pressed_keys[pygame.K_a]:
-                acceleration.x -= x_val
-
-            if window.get_input().is_action_just_pressed("fire"):
-                dir = Vec2(1, 0).rotate(self.weapon_rotation)
-                pos = self.position + dir * 0.5
-                self.bullet_manager.add_bullet(position=pos, direction=dir)
+        if window.get_input().is_action_just_pressed("fire"):
+            dir = Vec2(1, 0).rotate(self.weapon_rotation)
+            pos = self.position + dir * 0.5
+            self.bullet_manager.add_bullet(position=pos, direction=dir)
 
         # print(acceleration)
         if self.is_jumping == False and self.is_able_to_jump == False:
@@ -240,6 +243,7 @@ class Player:
         )
 
     def draw(self, camera: Camera, ui_camera: Camera) -> None:
+
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
         offset = Vec2(PIXEL_SIZE, PIXEL_SIZE) / 2
@@ -278,6 +282,9 @@ class Player:
                 ui_camera.blit(hp_img, offset=(hp_x, hp_y))
             else:
                 ui_camera.blit(no_hp_img, offset=(hp_x, hp_y))
+
+        if self.dialog_box.is_shown():
+            self.dialog_box.draw(ui_camera)
 
     def get_state(self):
         if self.is_able_to_jump == False:
