@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 import pygame
 import math
 
-from item import Item
+from common.item import Item
 from core.camera import Camera
 from core.math import BBox
 from copy import deepcopy
@@ -13,7 +13,11 @@ from core.color import Color
 
 class Tile:
     def __init__(
-        self, img_path: str, collision: bool, item: Optional[Item] = None, interactible = None
+        self,
+        img_path: str,
+        collision: bool,
+        item: Optional[Item] = None,
+        interactible=None,
     ) -> None:
         try:
             self.img = pygame.image.load(img_path).convert_alpha()
@@ -41,10 +45,11 @@ class Map:
             tile._resize(tile_size + 1)
 
     def load_from_file(self, path: str) -> None:
+        self.clear()
+
         img = pygame.image.load(path).convert_alpha()
 
         self._map_size = img.get_size()
-        self._map = []
 
         for x in range(self._map_size[0]):
             for y in range(self._map_size[1]):
@@ -57,9 +62,14 @@ class Map:
 
                 tile = self._tiles[color]  # This must not be copied.
                 self._map.append(tile)
-                
+
                 if tile.interactible is not None:
                     self._interactibles.add(tile.interactible)
+
+    def clear(self):
+        self._map_size = (0, 0)
+        self._map.clear()
+        self._interactibles.clear()
 
     def update(self, window):
         for interactible in self._interactibles:
@@ -68,7 +78,7 @@ class Map:
     def get_tile_size(self) -> int:
         return self._tile_size
 
-    def get_map_size(self) -> int:
+    def get_map_size(self) -> Tuple[int, int]:
         return self._map_size
 
     def get_tile(self, x: int, y: int) -> Tile:
@@ -87,7 +97,10 @@ class Map:
                     )
                 if tile.interactible is not None:
                     camera.blit(
-                        pygame.transform.scale(tile.interactible.animation.get_frame(), (self._tile_size, self._tile_size)),
+                        pygame.transform.scale(
+                            tile.interactible.animation.get_frame(),
+                            (self._tile_size, self._tile_size),
+                        ),
                         (x * self._tile_size, y * self._tile_size),
                     )
 
@@ -118,10 +131,8 @@ class Map:
                         replacement_color
                     ]
                     return item
-                
-    def interaction_collision(
-        self, bbox: BBox
-    ) -> Optional[int]:
+
+    def interaction_collision(self, bbox: BBox) -> Optional[int]:
         for x in range(math.floor(bbox.x), math.floor(bbox.x + bbox.w) + 1):
             for y in range(math.floor(bbox.y), math.floor(bbox.y + bbox.h) + 1):
                 if x < 0 or y < 0 or x >= self._map_size[0] or y >= self._map_size[1]:
@@ -130,5 +141,5 @@ class Map:
                 tile = self._map[x * self._map_size[1] + y]
                 if tile.interactible is not None:
                     return tile.interactible
-                
+
         return None

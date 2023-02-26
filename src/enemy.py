@@ -267,8 +267,8 @@ class Warrior(Enemy):
             return True
         return False
 
-    def combat(self, bullet_meneger: BulletManager) -> bool:
-        bullets = bullet_meneger.get_bullets()
+    def combat(self, bullet_manager: BulletManager) -> bool:
+        bullets = bullet_manager.get_bullets()
         for bullet in bullets:
             bullet_box = bullet.getRect()
 
@@ -280,7 +280,7 @@ class Warrior(Enemy):
             )
             print(self.getRect(), tmp_rect)
             if self.getRect().colliderect(tmp_rect):
-                bullet_meneger.remove_bullet(bullet)
+                bullet_manager.remove_bullet(bullet)
                 print("OK")
                 self.health -= 1
                 if self.is_dead():
@@ -355,7 +355,7 @@ warrior_anim = Animation(
 
 # sorcer_anim = Animation(pygame.transform.scale(pygame.image.load("path..."), (64, 64))
 #                           , cols=-1, frame_rate= 8)
-class EnemyMenager:
+class EnemyManager:
     def __init__(self, collision_map: Map):
         self._enemies = []
         self.collision_map = collision_map
@@ -372,9 +372,12 @@ class EnemyMenager:
     def remove_enemy(self, enemy: Enemy):
         self._enemies.remove(enemy)
 
-    def update(self, window: Window, player_pos: Vec2, bullets_meneger: BulletManager):
+    def clear(self):
+        self._enemies = []
+
+    def update(self, window: Window, player_pos: Vec2, bullets_manager: BulletManager):
         for enemy in self._enemies:
-            to_delete = enemy.combat(bullets_meneger)
+            to_delete = enemy.combat(bullets_manager)
             enemy.update(window, self._animations[enemy.get_class()], player_pos)
 
             if to_delete is not None:

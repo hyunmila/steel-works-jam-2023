@@ -127,29 +127,29 @@ class Player:
             if window.get_input().is_action_pressed("left"):
                 acceleration.x -= x_val
 
-        if window.get_input().is_action_pressed("jump"):
-            # if pressed_keys[pygame.K_w]:
-            if self.is_jumping == False and self.is_able_to_jump == True:
-                self.t_start = perf_counter()
-                self.is_jumping = True
-                self.is_able_to_jump = False
-            if self.is_jumping == True:
-                self.t_stop = perf_counter()
-                if (self.t_stop - self.t_start) <= 0.3:
-                    factor = (self.t_stop - self.t_start)*3
-                    self.velocity.y = -13
-                    #print(self.velocity)
-                    # acceleration.y = -30*(3.5-factor)
-                else:
-                    self.is_jumping = False
+            if window.get_input().is_action_pressed("jump"):
+                # if pressed_keys[pygame.K_w]:
+                if self.is_jumping == False and self.is_able_to_jump == True:
+                    self.t_start = perf_counter()
+                    self.is_jumping = True
                     self.is_able_to_jump = False
-        else:
-            self.is_jumping = False
+                if self.is_jumping == True:
+                    self.t_stop = perf_counter()
+                    if (self.t_stop - self.t_start) <= 0.3:
+                        factor = (self.t_stop - self.t_start) * 3
+                        self.velocity.y = -13
+                        # print(self.velocity)
+                        # acceleration.y = -30*(3.5-factor)
+                    else:
+                        self.is_jumping = False
+                        self.is_able_to_jump = False
+            else:
+                self.is_jumping = False
 
-        if window.get_input().is_action_just_pressed("fire"):
-            dir = Vec2(1, 0).rotate(self.weapon_rotation)
-            pos = self.position + dir * 0.5
-            self.bullet_manager.add_bullet(position=pos, direction=dir)
+            if window.get_input().is_action_just_pressed("fire"):
+                dir = Vec2(1, 0).rotate(self.weapon_rotation)
+                pos = self.position + dir * 0.5
+                self.bullet_manager.add_bullet(position=pos, direction=dir)
 
         # print(acceleration)
         if self.is_jumping == False and self.is_able_to_jump == False:
@@ -252,8 +252,27 @@ class Player:
             ),
         )
 
-    def draw(self, camera: Camera, ui_camera: Camera) -> None:
+        # Clamp camera position to never look outside of the map
+        w0 = self.follow_camera.viewport.get_width() / 2
+        w1 = (
+            self.collision_map.get_map_size()[0] * self.collision_map.get_tile_size()
+            - self.follow_camera.viewport.get_width() / 2
+        )
+        h0 = self.follow_camera.viewport.get_height() / 2
+        h1 = (
+            self.collision_map.get_map_size()[1] * self.collision_map.get_tile_size()
+            - self.follow_camera.viewport.get_height() / 2
+        )
+        self.follow_camera.position = (
+            pygame.math.clamp(self.follow_camera.position[0], w0, w1)
+            if w0 <= w1
+            else self.follow_camera.position[0],
+            pygame.math.clamp(self.follow_camera.position[1], h0, h1)
+            if h0 <= h1
+            else self.follow_camera.position[1],
+        )
 
+    def draw(self, camera: Camera, ui_camera: Camera) -> None:
         surface = pygame.Surface((PIXEL_SIZE * 2, PIXEL_SIZE * 2), pygame.SRCALPHA, 32)
         surface = surface.convert_alpha()
         offset = Vec2(PIXEL_SIZE, PIXEL_SIZE) / 2
@@ -287,7 +306,7 @@ class Player:
         # max_hp = self.hp
         for i in range(self.max_hp):
             hp_x = -(ui_camera.viewport.get_width() / 2) + 30
-            hp_y = -(ui_camera.viewport.height / 2) + hp_img.get_height() * i + 30
+            hp_y = -(ui_camera.viewport.get_height() / 2) + hp_img.get_height() * i + 30
             if i + 1 <= self.hp:
                 ui_camera.blit(hp_img, offset=(hp_x, hp_y))
             else:

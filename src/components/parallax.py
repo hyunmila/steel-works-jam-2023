@@ -54,6 +54,10 @@ class Parallax:
         n_w = int(viewport_size[0] / img_size[0]) + 2
         n_h = int(viewport_size[1] / img_size[1]) + 2
 
+        # sanity limits
+        n_w = min(n_w, 100)
+        n_h = min(n_h, 100)
+
         self._cover = pygame.Surface(
             (img_size[0] * n_w, img_size[1] * n_h), pygame.SRCALPHA, 32
         )

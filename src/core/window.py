@@ -12,7 +12,11 @@ class Window:
         os.environ[
             "SDL_VIDEO_CENTERED"
         ] = "1"  # centers the main window after the menu DO NOT DELETE PLS otherwise it won't work on Windows :(
+
         pygame.init()
+        pygame.mixer.init()
+        pygame.mixer.set_num_channels(100)
+
         pygame.display.set_caption(title)
 
         self._surface: pygame.Surface = pygame.display.set_mode(size, pygame.RESIZABLE)

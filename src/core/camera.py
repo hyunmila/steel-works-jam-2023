@@ -12,7 +12,7 @@ class Camera:
         self.position: Tuple[float, float] = (0, 0)
 
     def blit(self, surface: pygame.Surface, offset: Tuple[float, float] = (0, 0)):
-        viewport_size = (self.viewport.get_width(), self.viewport.height)
+        viewport_size = (self.viewport.get_width(), self.viewport.get_height())
 
         ox = self.position[0] - viewport_size[0] / 2
         oy = self.position[1] - viewport_size[1] / 2
