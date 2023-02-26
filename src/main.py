@@ -93,7 +93,8 @@ map = Map(
                 text=[
                     "Lubie\nplacki",
                     "AAAaaaaAAAaaaaAAAaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaA",
-                    "turbosprezarka"
+                    "turbosprezarka",
+                    "s\nr\na\nn\ni\ne\n1\n2\n3\n4\n5\n6\n7\n8\n9"
                 ],
             ),
         )
